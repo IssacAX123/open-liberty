@@ -12,6 +12,8 @@ package io.openliberty.mcp.internal;
 import java.util.Arrays;
 import java.util.EnumSet;
 
+import io.openliberty.mcp.annotations.Prompt;
+import io.openliberty.mcp.annotations.PromptArg;
 import io.openliberty.mcp.annotations.Tool;
 import io.openliberty.mcp.annotations.Tool.Annotations;
 import jakarta.enterprise.util.AnnotationLiteral;
@@ -113,6 +115,56 @@ public class Literals {
         NON_DESTRUCTIVE,
         IDEMPONENT,
         NOT_OPEN_WORLD
+    }
+
+    private static abstract class PromptLiteral extends AnnotationLiteral<Prompt> implements Prompt {
+        private static final long serialVersionUID = 1L;
+    }
+
+    public static Prompt prompt(String name, String title, String description) {
+        return new PromptLiteral() {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public String title() {
+                return title;
+            }
+
+            @Override
+            public String name() {
+                return name;
+            }
+
+            @Override
+            public String description() {
+                return description;
+            }
+        };
+    }
+
+    private static abstract class PromptArgLiteral extends AnnotationLiteral<PromptArg> implements PromptArg {
+        private static final long serialVersionUID = 1L;
+    }
+
+    public static PromptArg promptArg(String name, String description, boolean required) {
+        return new PromptArgLiteral() {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public boolean required() {
+                return required;
+            }
+
+            @Override
+            public String name() {
+                return name;
+            }
+
+            @Override
+            public String description() {
+                return description;
+            }
+        };
     }
 
 }

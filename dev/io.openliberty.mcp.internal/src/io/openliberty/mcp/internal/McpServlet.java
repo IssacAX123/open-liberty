@@ -24,6 +24,7 @@ import io.openliberty.mcp.internal.Capabilities.ServerCapabilities;
 import io.openliberty.mcp.internal.exceptions.jsonrpc.JSONRPCErrorCode;
 import io.openliberty.mcp.internal.exceptions.jsonrpc.JSONRPCException;
 import io.openliberty.mcp.internal.requests.McpInitializeParams;
+import io.openliberty.mcp.internal.requests.McpPromptGetParams;
 import io.openliberty.mcp.internal.requests.McpRequest;
 import io.openliberty.mcp.internal.requests.McpToolCallParams;
 import io.openliberty.mcp.internal.responses.McpErrorResponse;
@@ -122,6 +123,8 @@ public class McpServlet extends HttpServlet {
         switch (request.getRequestMethod()) {
             case TOOLS_CALL -> callTool(request, resp.getWriter());
             case TOOLS_LIST -> listTools(request, resp.getWriter());
+            case PROMPTS_GET -> getPrompt(request, resp.getWriter());
+            case PROMPTS_LIST -> listPrompts(request, resp.getWriter());
             case INITIALIZE -> initialize(request, resp.getWriter());
             case INITIALIZED -> initialized(resp);
             default -> throw new JSONRPCException(JSONRPCErrorCode.METHOD_NOT_FOUND, List.of(String.valueOf(request.getRequestMethod() + " not found")));
@@ -132,6 +135,9 @@ public class McpServlet extends HttpServlet {
     @FFDCIgnore({ JSONRPCException.class, InvocationTargetException.class, IllegalAccessException.class, IllegalArgumentException.class })
     private void callTool(McpRequest request, Writer writer) {
         McpToolCallParams params = request.getParams(McpToolCallParams.class, jsonb);
+        if (params.getMetadata() == null) {
+            throw new JSONRPCException(JSONRPCErrorCode.INVALID_PARAMS, List.of("Method " + request.params().getString("name") + " not found"));
+        }
         CreationalContext<Object> cc = bm.createCreationalContext(null);
         Object bean = bm.getReference(params.getBean(), params.getBean().getBeanClass(), cc);
         McpResponse mcpResponse;
@@ -171,6 +177,51 @@ public class McpServlet extends HttpServlet {
                 response.add(new ToolDescription(tmd));
             }
             ToolResult toolResult = new ToolResult(response);
+            McpResponse mcpResponse = new McpResultResponse(request.id(), toolResult);
+            jsonb.toJson(mcpResponse, writer);
+        }
+    }
+
+    @FFDCIgnore({ JSONRPCException.class, InvocationTargetException.class, IllegalAccessException.class, IllegalArgumentException.class })
+    private void getPrompt(McpRequest request, Writer writer) {
+        McpPromptGetParams params = request.getParams(McpPromptGetParams.class, jsonb);
+        if (params.getMetadata() == null) {
+            throw new JSONRPCException(JSONRPCErrorCode.INVALID_PARAMS, List.of("Method " + request.params().getString("name") + " not found"));
+        }
+        CreationalContext<Void> cc = bm.createCreationalContext(null);
+        Object bean = bm.getReference(params.getBean(), params.getBean().getBeanClass(), cc);
+        McpResponse mcpResponse;
+        try {
+            Object result = params.getMethod().invoke(bean, params.getArguments(jsonb));
+            String description = PromptRegistry.get().getPrompt(params.getName()).annotation().description();
+            mcpResponse = new McpResultResponse(request.id(), PromptResponseResult.createFrom(description, result));
+        } catch (JSONRPCException e) {
+            throw e;
+        } catch (InvocationTargetException e) {
+            mcpResponse = new McpResultResponse(request.id(), new ToolResponseResult(e.getCause().getMessage(), true));;
+        } catch (IllegalAccessException e) {
+            throw new JSONRPCException(JSONRPCErrorCode.INTERNAL_ERROR, List.of("Could not get prompt from " + params.getName()));
+        } catch (IllegalArgumentException e) {
+            throw new JSONRPCException(JSONRPCErrorCode.INVALID_PARAMS, List.of("Incorrect arguments in params"));
+        }
+        jsonb.toJson(mcpResponse, writer);
+
+    }
+
+    /**
+     * @param request
+     * @return
+     */
+    private void listPrompts(McpRequest request, Writer writer) {
+        PromptRegistry promptRegistry = PromptRegistry.get();
+
+        List<PromptDescription> response = new LinkedList<>();
+
+        if (promptRegistry.hasPrompts()) {
+            for (PromptMetadata pmd : promptRegistry.getAllPrompts()) {
+                response.add(new PromptDescription(pmd));
+            }
+            PromptResult toolResult = new PromptResult(response);
             McpResponse mcpResponse = new McpResultResponse(request.id(), toolResult);
             jsonb.toJson(mcpResponse, writer);
         }

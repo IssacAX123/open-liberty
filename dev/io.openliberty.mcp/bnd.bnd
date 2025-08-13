@@ -21,7 +21,7 @@ javac.target: 17
 WS-TraceGroup: MCP
 
 Export-Package: \
-    io.openliberty.mcp.*
+	io.openliberty.mcp.*
 
 -buildpath: \
     com.ibm.websphere.org.osgi.core;version=latest,\

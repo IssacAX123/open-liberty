@@ -13,8 +13,11 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
 import org.junit.runners.Suite.SuiteClasses;
 
+
 import io.openliberty.mcp.internal.fat.lifecycle.tests.BeanLifecycleTest;
 import io.openliberty.mcp.internal.fat.lifecycle.tests.LifecycleTest;
+import io.openliberty.mcp.internal.fat.lifecycle.LifecycleTest;
+import io.openliberty.mcp.internal.fat.prompt.PromptTest;
 import io.openliberty.mcp.internal.fat.tool.ToolTest;
 
 /**
@@ -24,7 +27,8 @@ import io.openliberty.mcp.internal.fat.tool.ToolTest;
 @SuiteClasses({
                 BeanLifecycleTest.class,
                 LifecycleTest.class,
-                ToolTest.class
+                ToolTest.class,
+                PromptTest.class
 })
 public class FATSuite {
 

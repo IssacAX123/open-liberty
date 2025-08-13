@@ -28,7 +28,7 @@ public class McpServletInitializer implements ServletContainerInitializer {
 
     @Override
     public void onStartup(Set<Class<?>> c, ServletContext context) throws ServletException {
-        if (ToolRegistry.get().hasTools()) {
+        if (ToolRegistry.get().hasTools() || PromptRegistry.get().hasPrompts()) {
             Dynamic reg = context.addServlet("io.openliberty.mcp.servlet", McpServlet.class);
             reg.addMapping("/mcp"); // TODO: make configurable
         }

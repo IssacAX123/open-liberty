@@ -14,18 +14,18 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
-import io.openliberty.mcp.annotations.Tool;
+import io.openliberty.mcp.annotations.Prompt;
 import jakarta.enterprise.inject.spi.CDI;
 
-public class ToolRegistry {
+public class PromptRegistry {
 
-    private static ToolRegistry staticInstance = null;
+    private static PromptRegistry staticInstance = null;
 
-    public static ToolRegistry get() {
+    public static PromptRegistry get() {
         if (staticInstance != null) {
             return staticInstance;
         }
-        return CDI.current().select(McpCdiExtension.class).get().getToolRegistry();
+        return CDI.current().select(McpCdiExtension.class).get().getPromptRegistry();
     }
 
     /**
@@ -33,31 +33,31 @@ public class ToolRegistry {
      *
      * @param toolRegistry
      */
-    public static void set(ToolRegistry toolRegistry) {
-        staticInstance = toolRegistry;
+    public static void set(PromptRegistry promptRegistry) {
+        staticInstance = promptRegistry;
     }
 
-    private Map<String, ToolMetadata> tools = new HashMap<>();
+    private Map<String, PromptMetadata> prompt = new HashMap<>();
 
-    public ToolMetadata getTool(String name) {
-        ToolMetadata result = tools.get(name);
+    public PromptMetadata getPrompt(String name) {
+        PromptMetadata result = prompt.get(name);
         return result;
     }
 
-    public void addTool(ToolMetadata tool) {
+    public void addPrompt(PromptMetadata tool) {
         String name = tool.annotation().name();
-        if (name.equals(Tool.ELEMENT_NAME)) {
+        if (name.equals(Prompt.ELEMENT_NAME)) {
             name = tool.method().getJavaMember().getName();
         }
-        tools.put(name, tool);
+        prompt.put(name, tool);
     }
 
-    public boolean hasTools() {
-        return !tools.isEmpty();
+    public boolean hasPrompts() {
+        return !prompt.isEmpty();
     }
 
-    public Collection<ToolMetadata> getAllTools() {
-        return new ArrayList<>(tools.values());
+    public Collection<PromptMetadata> getAllPrompts() {
+        return new ArrayList<>(prompt.values());
     }
 
 }

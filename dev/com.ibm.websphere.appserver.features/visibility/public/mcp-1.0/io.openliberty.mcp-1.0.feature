@@ -5,7 +5,8 @@ IBM-App-ForceRestart: install, \
  uninstall
 IBM-API-Package: \
  io.openliberty.mcp, \
- io.openliberty.mcp.annotations
+ io.openliberty.mcp.annotations, \
+ io.openliberty.mcp.types
 IBM-ShortName: mcp-1.0
 Subsystem-Name: Model Context Protocol 1.0
 -features=com.ibm.websphere.appserver.servlet-6.0;ibm.tolerates:=6.1,\

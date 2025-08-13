@@ -9,6 +9,7 @@
  *******************************************************************************/
 package io.openliberty.mcp.internal;
 
+import io.openliberty.mcp.annotations.Prompt;
 import io.openliberty.mcp.annotations.Tool;
 import jakarta.enterprise.event.Observes;
 import jakarta.enterprise.inject.spi.AnnotatedMethod;
@@ -41,5 +42,26 @@ public class McpCdiExtension implements Extension {
 
     public ToolRegistry getToolRegistry() {
         return tools;
+    }
+
+    private PromptRegistry prompts = new PromptRegistry();
+
+    void registerPrompts(@Observes ProcessManagedBean<?> pmb) {
+        // TODO: limit this to just bean types with Tool annotations?
+        AnnotatedType<?> type = pmb.getAnnotatedBeanClass();
+        for (AnnotatedMethod<?> m : type.getMethods()) {
+            Prompt promptAnnotation = m.getAnnotation(Prompt.class);
+            if (promptAnnotation != null) {
+                registerPrompts(promptAnnotation, pmb.getBean(), m);
+            }
+        }
+    }
+
+    private void registerPrompts(Prompt prompt, Bean<?> bean, AnnotatedMethod<?> method) {
+        prompts.addPrompt(new PromptMetadata(prompt, bean, method));
+    }
+
+    public PromptRegistry getPromptRegistry() {
+        return prompts;
     }
 }

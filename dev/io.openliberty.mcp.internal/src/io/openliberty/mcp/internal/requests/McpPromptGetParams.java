@@ -15,9 +15,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import io.openliberty.mcp.internal.ToolMetadata;
-import io.openliberty.mcp.internal.ToolMetadata.ArgumentMetadata;
-import io.openliberty.mcp.internal.ToolRegistry;
+import io.openliberty.mcp.internal.PromptMetadata;
+import io.openliberty.mcp.internal.PromptMetadata.ArgumentMetadata;
+import io.openliberty.mcp.internal.PromptRegistry;
 import io.openliberty.mcp.internal.exceptions.jsonrpc.JSONRPCErrorCode;
 import io.openliberty.mcp.internal.exceptions.jsonrpc.JSONRPCException;
 import jakarta.enterprise.inject.spi.Bean;
@@ -28,11 +28,11 @@ import jakarta.json.bind.Jsonb;
 /**
  *
  */
-public class McpToolCallParams {
+public class McpPromptGetParams {
 
     private Jsonb jsonb;
     private String name;
-    private ToolMetadata metadata;
+    private PromptMetadata metadata;
     private JsonObject arguments;
     private Object[] parsedArguments;
 
@@ -42,8 +42,8 @@ public class McpToolCallParams {
 
     public void setName(String name) {
         this.name = name;
-        ToolRegistry tools = ToolRegistry.get();
-        metadata = tools.getTool(name);
+        PromptRegistry tools = PromptRegistry.get();
+        metadata = tools.getPrompt(name);
     }
 
     public void setArguments(JsonObject arguments) {
@@ -88,7 +88,7 @@ public class McpToolCallParams {
         return results;
     }
 
-    public ToolMetadata getMetadata() {
+    public PromptMetadata getMetadata() {
         return metadata;
     }
 

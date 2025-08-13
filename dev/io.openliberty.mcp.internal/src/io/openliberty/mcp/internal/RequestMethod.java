@@ -24,6 +24,8 @@ public enum RequestMethod {
 
     TOOLS_CALL("tools/call"),
     TOOLS_LIST("tools/list"),
+    PROMPTS_GET("prompts/get"),
+    PROMPTS_LIST("prompts/list"),
     INITIALIZE("initialize"),
     INITIALIZED("notifications/initialized");
 

@@ -8,7 +8,7 @@
  * SPDX-License-Identifier: EPL-2.0
  *******************************************************************************/
 /**
- * MCP tools, resources and prompts can be declared using the annotations in this package.
+ *
  */
 @com.ibm.websphere.ras.annotation.TraceOptions(traceGroup = "MCP")
 @org.osgi.annotation.versioning.Version("1.0")

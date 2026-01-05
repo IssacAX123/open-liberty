@@ -22,6 +22,7 @@ import io.openliberty.mcp.internal.exceptions.jsonrpc.JSONRPCException;
 import io.openliberty.mcp.internal.exceptions.jsonrpc.McpResponseException;
 import io.openliberty.mcp.tools.ToolManager.ToolArguments;
 import io.openliberty.mcp.tools.ToolManager.ToolDefinition;
+import io.openliberty.mcp.metrics.McpMetricRecorder;
 import io.openliberty.mcp.tools.ToolResponse;
 import jakarta.enterprise.context.spi.CreationalContext;
 import jakarta.enterprise.inject.spi.BeanManager;
@@ -37,8 +38,8 @@ public class AsyncBeanMethodHandler extends BeanMethodHandler<CompletionStage<To
      * @param bm the bean manager to use to look up the bean
      * @param method metadata about the method to call
      */
-    public AsyncBeanMethodHandler(Jsonb jsonb, BeanManager bm, MethodMetadata method) {
-        super(jsonb, bm, method);
+    public AsyncBeanMethodHandler(Jsonb jsonb, BeanManager bm, MethodMetadata method, McpMetricRecorder metricRecorder) {
+        super(jsonb, bm, method, metricRecorder);
     }
 
     @Override
@@ -54,6 +55,8 @@ public class AsyncBeanMethodHandler extends BeanMethodHandler<CompletionStage<To
             try {
                 try {
                     // Call the tool method
+                    if (metricRecorder != null)
+                        metricRecorder.incrementToolCallCount(); // Record the tool call for telemetry metrics
                     methodStage = ((CompletionStage<?>) method.method().invoke(beanInstance, argsArray));
                 } catch (Throwable t) {
                     releaseCc(cc);

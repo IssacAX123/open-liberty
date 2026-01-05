@@ -42,6 +42,9 @@ import io.openliberty.mcp.tools.ToolManager;
 import io.openliberty.mcp.tools.ToolManager.ToolAnnotations;
 import io.openliberty.mcp.tools.ToolManager.ToolArgument;
 import io.openliberty.mcp.tools.ToolManager.ToolArguments;
+import io.openliberty.mcp.metrics.McpMetricRecorder;
+import io.openliberty.mcp.metrics.McpMetricRecorderProvider;
+import io.openliberty.mcp.metrics.McpMetricRecorderProvider.AsyncType;
 import io.openliberty.mcp.tools.ToolResponse;
 import jakarta.enterprise.inject.spi.AnnotatedMethod;
 import jakarta.enterprise.inject.spi.AnnotatedParameter;
@@ -107,7 +110,8 @@ public record ToolMetadata(String name,
      * @param jsonb the jsonb to use to serialize structured content
      * @return the created tool metadata
      */
-    public static ToolMetadata createFrom(Tool annotation, Bean<?> bean, AnnotatedMethod<?> method, BeanManager bm, Jsonb jsonb) {
+    public static ToolMetadata createFrom(Tool annotation, Bean<?> bean, AnnotatedMethod<?> method, BeanManager bm, Jsonb jsonb,
+                                          McpMetricRecorderProvider mcpMetricRecorderProvider) {
         String name = annotation.name().equals(Tool.ELEMENT_NAME) ? method.getJavaMember().getName() : annotation.name();
         String title = annotation.title().isEmpty() ? null : annotation.title();
         String description = annotation.description().isEmpty() ? null : annotation.description();
@@ -175,9 +179,13 @@ public record ToolMetadata(String name,
         SyncBeanMethodHandler handler = null;
         AsyncBeanMethodHandler asyncHandler = null;
         if (returnsCompletionStage) {
-            asyncHandler = new AsyncBeanMethodHandler(jsonb, bm, methodMetadata);
+            McpMetricRecorder metricRecorder = (mcpMetricRecorderProvider != null) ? mcpMetricRecorderProvider.getMetricRecorder(method.getJavaMember(), annotation,
+                                                                                                                                 AsyncType.ASYNC) : null;
+            asyncHandler = new AsyncBeanMethodHandler(jsonb, bm, methodMetadata, metricRecorder);
         } else {
-            handler = new SyncBeanMethodHandler(jsonb, bm, methodMetadata);
+            McpMetricRecorder metricRecorder = (mcpMetricRecorderProvider != null) ? mcpMetricRecorderProvider.getMetricRecorder(method.getJavaMember(), annotation,
+                                                                                                                                 AsyncType.SYNC) : null;
+            handler = new SyncBeanMethodHandler(jsonb, bm, methodMetadata, metricRecorder);
         }
 
         return new ToolMetadata(name,

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2026 IBM Corporation and others.
+ * Copyright (c) 2025, 2026 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
@@ -7,6 +7,9 @@
  *
  * SPDX-License-Identifier: EPL-2.0
  *******************************************************************************/
+/**
+ *
+ */
 @com.ibm.websphere.ras.annotation.TraceOptions(traceGroup = "MCP")
 @org.osgi.annotation.versioning.Version("1.0")
-package io.openliberty.mcp.telemetry.utils;
+package io.openliberty.mcp.monitor;

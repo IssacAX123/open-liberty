@@ -12,6 +12,7 @@ package io.openliberty.mcp.internal.fat.telemetry;
 import static java.util.stream.Collectors.toList;
 
 import java.util.Collection;
+import java.util.List;
 
 import io.opentelemetry.sdk.common.CompletableResultCode;
 import io.opentelemetry.sdk.metrics.InstrumentType;
@@ -56,9 +57,14 @@ public class InMemoryMetricReader implements MetricReader {
         return CompletableResultCode.ofSuccess();
     }
 
+    public List<String> getMetricNames() {
+        return collectionRegistration.collectAllMetrics().stream().map(metric -> metric.getName()).collect(toList());
+
+    }
+
     public Collection<MetricData> getMcpMetricData() {
         return collectionRegistration.collectAllMetrics().stream()
-                                     .filter(metric -> metric.getName().startsWith("mcp")) //We are testing mcp metrics, ignore JVM, HTTP, etc metrics
+                                     .filter(metric -> metric.getName().contains("mcp")) //We are testing mcp metrics, ignore JVM, HTTP, etc metrics
                                      .collect(toList());
     }
 }

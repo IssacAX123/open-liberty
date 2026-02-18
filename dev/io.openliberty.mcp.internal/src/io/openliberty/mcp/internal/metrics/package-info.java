@@ -7,10 +7,9 @@
  *
  * SPDX-License-Identifier: EPL-2.0
  *******************************************************************************/
-package io.openliberty.mcp.metrics;
-
-public interface McpMetricRecorder {
-
-    public void incrementToolCallCount();
-
-}
+/**
+ *
+ */
+@com.ibm.websphere.ras.annotation.TraceOptions(traceGroup = "MCP")
+@org.osgi.annotation.versioning.Version("1.0")
+package io.openliberty.mcp.internal.metrics;

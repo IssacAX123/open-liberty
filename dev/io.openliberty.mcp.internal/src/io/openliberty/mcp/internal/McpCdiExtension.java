@@ -20,7 +20,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import com.ibm.websphere.ras.Tr;
 import com.ibm.websphere.ras.TraceComponent;
-import com.ibm.ws.kernel.service.util.ServiceCaller;
 
 import io.openliberty.mcp.annotations.Tool;
 import io.openliberty.mcp.content.ContentEncoder;
@@ -34,7 +33,6 @@ import io.openliberty.mcp.internal.schemas.SchemaRegistry;
 import io.openliberty.mcp.internal.tools.BeanMethodHandler.MethodMetadata;
 import io.openliberty.mcp.messaging.Encoder;
 import io.openliberty.mcp.tools.ToolManager.ToolArgument;
-import io.openliberty.mcp.metrics.McpMetricRecorderProvider;
 import io.openliberty.mcp.tools.ToolResponseEncoder;
 import jakarta.enterprise.context.spi.CreationalContext;
 import jakarta.enterprise.event.Observes;
@@ -56,8 +54,6 @@ import jakarta.json.bind.JsonbConfig;
 public class McpCdiExtension implements Extension {
 
     private static final TraceComponent tc = Tr.register(McpCdiExtension.class);
-    static final ServiceCaller<McpMetricRecorderProvider> MCP_METRIC_RECORDER_PROVIDER_SERVICE = new ServiceCaller<>(McpCdiExtension.class, McpMetricRecorderProvider.class);
-
     private final List<Bean<?>> encoderBeans = new ArrayList<>();
     private EncoderRegistry encoderRegistry;
     private ConcurrentHashMap<String, ArrayList<String>> duplicateToolsMap = new ConcurrentHashMap<>();
@@ -249,16 +245,13 @@ public class McpCdiExtension implements Extension {
         try {
             McpMetricRecorderProvider mcpMetricRecorderProvider = MCP_METRIC_RECORDER_PROVIDER_SERVICE.current().orElse(null);
             ToolMetadata toolmd = ToolMetadata.createFrom(tool, bean, method, beanManager, jsonb, mcpMetricRecorderProvider);
-            List<String> duplicatesList = duplicateToolsMap.computeIfAbsent(toolmd.name(), key -> new ArrayList<>());
-            duplicatesList.add(toolmd.getToolQualifiedName());
-            if (duplicatesList.size() <= 1) {
-                tools.addTool(toolmd);
-                if (TraceComponent.isAnyTracingEnabled()) {
-                    if (tc.isDebugEnabled()) {
-                        Tr.debug(this, tc, "Registered tool: " + toolmd.name(), toolmd);
-                    } else if (tc.isEventEnabled()) {
-                        Tr.event(this, tc, "Registered tool: " + toolmd.name(), method);
-                    }
+            duplicateToolsMap.computeIfAbsent(toolmd.name(), key -> new LinkedList<>()).add(toolmd.getToolQualifiedName());
+            tools.addTool(toolmd);
+            if (TraceComponent.isAnyTracingEnabled()) {
+                if (tc.isDebugEnabled()) {
+                    Tr.debug(this, tc, "Registered tool: " + toolmd.name(), toolmd);
+                } else if (tc.isEventEnabled()) {
+                    Tr.event(this, tc, "Registered tool: " + toolmd.name(), method);
                 }
             }
         } catch (GenericArgumentException e) {

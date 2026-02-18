@@ -31,7 +31,7 @@ import io.openliberty.mcp.internal.encoders.EncoderRegistry;
 import io.openliberty.mcp.internal.exceptions.jsonrpc.JSONRPCErrorCode;
 import io.openliberty.mcp.internal.exceptions.jsonrpc.JSONRPCException;
 import io.openliberty.mcp.messaging.Encoder;
-import io.openliberty.mcp.metrics.McpMetricRecorder;
+import io.openliberty.mcp.monitor.McpStatsMonitor;
 import io.openliberty.mcp.tools.ToolCallException;
 import io.openliberty.mcp.tools.ToolManager.ToolArguments;
 import io.openliberty.mcp.tools.ToolResponse;
@@ -53,7 +53,7 @@ public abstract class BeanMethodHandler<RESPONSE> implements Function<ToolArgume
     private Jsonb jsonb;
     protected final BeanManager bm;
     protected final MethodMetadata method;
-    protected final McpMetricRecorder metricRecorder;
+    protected final McpStatsMonitor metricsMonitor;
 
     /**
      * The metadata needed to invoke a tool declared as a bean method
@@ -83,12 +83,12 @@ public abstract class BeanMethodHandler<RESPONSE> implements Function<ToolArgume
      * @param bm the bean manager to use to look up the bean
      * @param method metadata about the method to call
      */
-    public BeanMethodHandler(Jsonb jsonb, BeanManager bm, MethodMetadata method, McpMetricRecorder metricRecorder) {
+    public BeanMethodHandler(Jsonb jsonb, BeanManager bm, MethodMetadata method, McpStatsMonitor metricsMonitor) {
         super();
         this.jsonb = jsonb;
         this.bm = bm;
         this.method = method;
-        this.metricRecorder = metricRecorder;
+        this.metricsMonitor = metricsMonitor;
     }
 
     /** {@inheritDoc} */

@@ -19,7 +19,7 @@ import io.openliberty.mcp.internal.exceptions.jsonrpc.JSONRPCException;
 import io.openliberty.mcp.internal.exceptions.jsonrpc.McpResponseException;
 import io.openliberty.mcp.tools.ToolManager.ToolArguments;
 import io.openliberty.mcp.tools.ToolManager.ToolDefinition;
-import io.openliberty.mcp.metrics.McpMetricRecorder;
+import io.openliberty.mcp.monitor.McpStatsMonitor;
 import io.openliberty.mcp.tools.ToolResponse;
 import jakarta.enterprise.context.spi.CreationalContext;
 import jakarta.enterprise.inject.spi.BeanManager;
@@ -35,8 +35,8 @@ public class SyncBeanMethodHandler extends BeanMethodHandler<ToolResponse> {
      * @param bm the bean manager to use to look up the bean
      * @param method metadata about the method to call
      */
-    public SyncBeanMethodHandler(Jsonb jsonb, BeanManager bm, MethodMetadata method, McpMetricRecorder metricRecorder) {
-        super(jsonb, bm, method, metricRecorder);
+    public SyncBeanMethodHandler(Jsonb jsonb, BeanManager bm, MethodMetadata method, McpStatsMonitor metricsMonitor) {
+        super(jsonb, bm, method, metricsMonitor);
     }
 
     @Override
@@ -51,9 +51,10 @@ public class SyncBeanMethodHandler extends BeanMethodHandler<ToolResponse> {
             Object result;
             try {
                 // Call the tool method
-                if (metricRecorder != null)
-                    metricRecorder.incrementToolCallCount(); // Record the tool call for telemetry metrics
                 result = method.method().invoke(beanInstance, argsArray);
+                if (metricsMonitor != null) {
+                    metricsMonitor.recordToolCall(); // Record the tool call for monitor 1.0 metrics
+                }
             } catch (IllegalAccessException e) {
                 throw new JSONRPCException(JSONRPCErrorCode.INTERNAL_ERROR, List.of("Could not call " + method.name()));
             } catch (IllegalArgumentException e) {

@@ -17,7 +17,6 @@ import java.util.Optional;
 import org.junit.Test;
 
 import componenttest.app.FATServlet;
-import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.sdk.metrics.data.LongPointData;
 import io.opentelemetry.sdk.metrics.data.MetricData;
 import jakarta.servlet.annotation.WebServlet;
@@ -30,7 +29,7 @@ public class McpMetricServlet extends FATServlet {
 
     @Test
     public void testMcpToolMetrics() {
-        Optional<MetricData> toolCountMetricData = getMetricData("mcp.tool.calls.total");
+        Optional<MetricData> toolCountMetricData = getMetricData("io.openliberty.mcp.tool.call.total");
         assertTrue(toolCountMetricData.isPresent());
         Optional<Long> basicToolCount = getToolCallCount(toolCountMetricData.get(), "basicTool");
         Optional<Long> advancedToolCount = getToolCallCount(toolCountMetricData.get(), "advancdTool");
@@ -53,9 +52,7 @@ public class McpMetricServlet extends FATServlet {
         return metricData.getLongSumData()
                          .getPoints()
                          .stream()
-                         .filter(m -> m.getAttributes()
-                                       .get(AttributeKey.stringKey("tool"))
-                                       .contains(methodName))
+                         .filter(m -> m.getAttributes().asMap().values().stream().anyMatch(attributeVal -> attributeVal.toString().contains(methodName)))
                          .map(LongPointData::getValue)
                          .findFirst();
     }

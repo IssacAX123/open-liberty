@@ -38,11 +38,11 @@ import io.openliberty.mcp.internal.security.SecurityRequirement;
 import io.openliberty.mcp.internal.tools.AsyncBeanMethodHandler;
 import io.openliberty.mcp.internal.tools.BeanMethodHandler.MethodMetadata;
 import io.openliberty.mcp.internal.tools.SyncBeanMethodHandler;
+import io.openliberty.mcp.monitor.McpStatsMonitor;
 import io.openliberty.mcp.tools.ToolManager;
 import io.openliberty.mcp.tools.ToolManager.ToolAnnotations;
 import io.openliberty.mcp.tools.ToolManager.ToolArgument;
 import io.openliberty.mcp.tools.ToolManager.ToolArguments;
-import io.openliberty.mcp.monitor.McpStatsMonitor;
 import io.openliberty.mcp.tools.ToolResponse;
 import jakarta.enterprise.inject.spi.AnnotatedMethod;
 import jakarta.enterprise.inject.spi.AnnotatedParameter;
@@ -79,6 +79,7 @@ public record ToolMetadata(String name,
                            Function<ToolArguments, ToolResponse> handler,
                            Function<ToolArguments, CompletionStage<ToolResponse>> asyncHandler,
                            Optional<MethodMetadata> methodMetadata,
+                           McpStatsMonitor metricsMonitor,
                            SecurityRequirement securityRequirement,
                            Instant createdAt) implements ToolManager.ToolInfo {
 
@@ -108,7 +109,7 @@ public record ToolMetadata(String name,
      * @param jsonb the jsonb to use to serialize structured content
      * @return the created tool metadata
      */
-    public static ToolMetadata createFrom(Tool annotation, Bean<?> bean, AnnotatedMethod<?> method, BeanManager bm, Jsonb jsonb) {
+    public static ToolMetadata createFrom(Tool annotation, Bean<?> bean, AnnotatedMethod<?> method, BeanManager bm, Jsonb jsonb, McpStatsMonitor metricsMonitor) {
         String name = annotation.name().equals(Tool.ELEMENT_NAME) ? method.getJavaMember().getName() : annotation.name();
         String title = annotation.title().isEmpty() ? null : annotation.title();
         String description = annotation.description().isEmpty() ? null : annotation.description();
@@ -173,15 +174,12 @@ public record ToolMetadata(String name,
                                                            getArgNameArray(method, methodArguments),
                                                            genericMap);
 
-        // method.getDeclaringClass().getName() + "." + method.getName()
-        String toolClassAndMethodName = method.getJavaMember().getDeclaringClass().getName() + "." + method.getJavaMember().getName();
-        McpStatsMonitor mcpMetricsMonitor = new McpStatsMonitor(toolClassAndMethodName, annotation);
         SyncBeanMethodHandler handler = null;
         AsyncBeanMethodHandler asyncHandler = null;
         if (returnsCompletionStage) {
-            asyncHandler = new AsyncBeanMethodHandler(jsonb, bm, methodMetadata, mcpMetricsMonitor);
+            asyncHandler = new AsyncBeanMethodHandler(jsonb, bm, methodMetadata);
         } else {
-            handler = new SyncBeanMethodHandler(jsonb, bm, methodMetadata, mcpMetricsMonitor);
+            handler = new SyncBeanMethodHandler(jsonb, bm, methodMetadata);
         }
 
         return new ToolMetadata(name,
@@ -195,6 +193,7 @@ public record ToolMetadata(String name,
                                 handler,
                                 asyncHandler,
                                 Optional.of(methodMetadata),
+                                metricsMonitor,
                                 SecurityRequirement.createFrom(method),
                                 Instant.now());
     }

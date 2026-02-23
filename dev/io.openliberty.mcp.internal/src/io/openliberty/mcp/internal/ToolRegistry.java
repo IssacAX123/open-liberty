@@ -31,6 +31,7 @@ import com.ibm.websphere.ras.TraceComponent;
 import io.openliberty.mcp.internal.schemas.SchemaRegistry;
 import io.openliberty.mcp.internal.security.SecurityRequirement;
 import io.openliberty.mcp.internal.security.SecurityRequirement.SecurityAnnotation;
+import io.openliberty.mcp.monitor.McpStatsMonitor;
 import io.openliberty.mcp.tools.ToolManager;
 import io.openliberty.mcp.tools.ToolResponse;
 import jakarta.enterprise.inject.spi.CDI;
@@ -135,6 +136,7 @@ public class ToolRegistry implements ToolManager {
         private Function<ToolArguments, ToolResponse> handler;
         private Function<ToolArguments, CompletionStage<ToolResponse>> asyncHandler;
         private Optional<ToolAnnotations> toolAnnotations = Optional.empty();
+        private McpStatsMonitor mcpMetricsMonitor;
 
         public ToolDefinitionImpl(String name) {
             this.name = name;
@@ -257,6 +259,8 @@ public class ToolRegistry implements ToolManager {
 
             SecurityRequirement securityRequirement = new SecurityRequirement(SecurityAnnotation.NONE, Collections.emptyList());
 
+            String toolName = name;
+            McpStatsMonitor mcpMetricsMonitor = new McpStatsMonitor(toolName);
             ToolMetadata newTool = new ToolMetadata(name,
                                                     title,
                                                     description,
@@ -268,6 +272,7 @@ public class ToolRegistry implements ToolManager {
                                                     handler,
                                                     asyncHandler,
                                                     Optional.empty(), // Method metadata
+                                                    mcpMetricsMonitor,
                                                     securityRequirement,
                                                     Instant.now());
 

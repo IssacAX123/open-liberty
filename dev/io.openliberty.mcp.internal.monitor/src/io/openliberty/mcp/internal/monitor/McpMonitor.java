@@ -1,4 +1,4 @@
-package io.openliberty.mcp.monitor;
+package io.openliberty.mcp.internal.monitor;
 
 import com.ibm.websphere.monitor.annotation.Monitor;
 import com.ibm.websphere.monitor.annotation.ProbeAtReturn;
@@ -8,6 +8,7 @@ import com.ibm.websphere.monitor.annotation.This;
 import com.ibm.websphere.monitor.meters.MeterCollection;
 
 import io.openliberty.mcp.annotations.Tool;
+import io.openliberty.mcp.monitor.McpStatsMonitor;
 
 
 
@@ -36,14 +37,14 @@ public class McpMonitor {
 	@ProbeSite(clazz = "io.openliberty.mcp.monitor.McpStatsMonitor", method = "recordToolCall")
 	public void atMcpToolCalled(@This Object mcpStats) {
 		McpStatsMonitor stats = (McpStatsMonitor) mcpStats;
-		getMcpServerMetrics(stats.classAndMethod(), stats.tool()).incrementToolCallCountBy(1);
+		getMcpServerMetrics(stats.toolName()).incrementToolCallCountBy(1);
 	}
 	
-	private synchronized McpStats getMcpServerMetrics(String classAndMethod, Tool tool) {
-		McpStats mcpStats = mcpCountByName.get(classAndMethod);
+	private synchronized McpStats getMcpServerMetrics(String toolName) {
+		McpStats mcpStats = mcpCountByName.get(toolName);
 		if (mcpStats == null) {
-			mcpStats = new McpStats(classAndMethod, tool);
-			mcpCountByName.put(classAndMethod, mcpStats);
+			mcpStats = new McpStats(toolName);
+			mcpCountByName.put(toolName, mcpStats);
 		}
 		return mcpStats;
 	}

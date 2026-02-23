@@ -11,7 +11,7 @@
 bVersion=1.0
 
 Bundle-Name: Model Context Protocol Monitor
-Bundle-SymbolicName: io.openliberty.mcp.monitor
+Bundle-SymbolicName: io.openliberty.mcp.internal.monitor
 Bundle-Description: Open Liberty Model Context Protocol Monitor, version ${bVersion}
 
 javac.source: 17
@@ -21,10 +21,9 @@ WS-TraceGroup: MCP
 
 Import-Package: *
 
-Export-Package: \
-	io.openliberty.mcp.monitor
+Export-Package: io.openliberty.mcp.internal.monitor
 
-Liberty-Monitoring-Components: io.openliberty.mcp.monitor.McpMonitor
+Liberty-Monitoring-Components: io.openliberty.mcp.internal.monitor.McpMonitor
 
 instrument.disabled: true
 

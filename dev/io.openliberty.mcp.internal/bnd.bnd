@@ -54,8 +54,7 @@ Bundle-Localization: \
 	io.openliberty.jakarta.annotation.2.1;version=latest,\
 	com.ibm.ws.cdi.interfaces.jakarta;version=latest,\
 	com.ibm.ws.transport.http;version=latest,\
-	com.ibm.ws.kernel.service;version=latest,\
-	io.openliberty.mcp.monitor
+	com.ibm.ws.kernel.service;version=latest
 	
 
 -testpath: \

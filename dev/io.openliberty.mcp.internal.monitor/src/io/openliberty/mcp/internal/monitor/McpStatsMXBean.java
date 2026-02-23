@@ -1,4 +1,4 @@
-package io.openliberty.mcp.monitor;
+package io.openliberty.mcp.internal.monitor;
 
 public interface McpStatsMXBean {
 	

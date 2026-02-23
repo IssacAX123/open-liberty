@@ -214,6 +214,7 @@ public class McpServlet extends HttpServlet {
             } else {
                 callToolAndSendResponseSync(transport, requestId, request, params);
             }
+            params.getMetadata().metricsMonitor().recordToolCall(); // Record the tool call for monitor 1.0 metrics
         } catch (ToolCallException e) {
             // Catch validation errors that occur before calling the tool and should result in a tool call error response
             ToolResponse response = ToolResponses.createBusinessErrorResponse(e);

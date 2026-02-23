@@ -1,4 +1,4 @@
-package io.openliberty.mcp.monitor;
+package io.openliberty.mcp.internal.monitor;
 
 import com.ibm.websphere.monitor.meters.Counter;
 import com.ibm.websphere.monitor.meters.Meter;
@@ -7,25 +7,19 @@ import io.openliberty.mcp.annotations.Tool;
 
 public class McpStats extends Meter implements McpStatsMXBean {
 	
-	private String classAndMethod;
-	private Tool tool;
+	private String toolName;
 	private Counter toolCallCount;
 	
-	public McpStats(String classAndMethod, Tool tool) {
-		this.classAndMethod = classAndMethod;
-		this.tool = tool;
+	public McpStats(String toolName) {
+		this.toolName = toolName;
 		
 		toolCallCount = new Counter();
 		toolCallCount.setDescription("Total calls of an MCP tool");
 
 	}
 
-	public String getClassAndMethod() {
-		return classAndMethod;
-	}
-
-	public Tool getTool() {
-		return tool;
+	public String getToolName() {
+		return toolName;
 	}
 	
 	public void incrementToolCallCountBy(int i) {

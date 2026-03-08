@@ -260,7 +260,7 @@ public class ToolRegistry implements ToolManager {
             SecurityRequirement securityRequirement = new SecurityRequirement(SecurityAnnotation.NONE, Collections.emptyList());
 
             String toolName = name;
-            McpStatsMonitor mcpMetricsMonitor = new McpStatsMonitor(toolName);
+            McpStatsMonitor mcpMetricsMonitor = new McpStatsMonitor("tool\\call");
             ToolMetadata newTool = new ToolMetadata(name,
                                                     title,
                                                     description,

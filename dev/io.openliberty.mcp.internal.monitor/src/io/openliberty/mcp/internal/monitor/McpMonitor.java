@@ -1,5 +1,7 @@
 package io.openliberty.mcp.internal.monitor;
 
+import java.time.Duration;
+
 import com.ibm.websphere.monitor.annotation.Monitor;
 import com.ibm.websphere.monitor.annotation.ProbeAtReturn;
 import com.ibm.websphere.monitor.annotation.ProbeSite;
@@ -8,6 +10,7 @@ import com.ibm.websphere.monitor.annotation.This;
 import com.ibm.websphere.monitor.meters.MeterCollection;
 
 import io.openliberty.mcp.annotations.Tool;
+import io.openliberty.mcp.internal.monitor.metrics.MetricsManager;
 import io.openliberty.mcp.monitor.McpStatsMonitor;
 
 
@@ -37,7 +40,10 @@ public class McpMonitor {
 	@ProbeSite(clazz = "io.openliberty.mcp.monitor.McpStatsMonitor", method = "recordToolCall")
 	public void atMcpToolCalled(@This Object mcpStats) {
 		McpStatsMonitor stats = (McpStatsMonitor) mcpStats;
-		getMcpServerMetrics(stats.toolName()).incrementToolCallCountBy(1);
+		McpStats serverMetric = getMcpServerMetrics(stats.getToolName());
+		serverMetric.incrementToolCallCountBy(1);
+		serverMetric.addToolTimeStat(stats.getToolDuration());
+		MetricsManager.getInstance().updateMcpToolDurationMetrics(stats.getToolName(), Duration.ofMillis(stats.getToolDuration()));
 	}
 	
 	private synchronized McpStats getMcpServerMetrics(String toolName) {

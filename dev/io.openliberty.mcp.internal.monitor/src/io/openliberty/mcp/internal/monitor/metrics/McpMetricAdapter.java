@@ -2,6 +2,9 @@ package io.openliberty.mcp.internal.monitor.metrics;
 
 import java.time.Duration;
 
+import io.openliberty.mcp.internal.monitor.McpStatAttributes;
+
+
 
 /**
  * Intended to be a service-component.
@@ -12,10 +15,10 @@ public interface McpMetricAdapter {
 	/**
 	 * Given the HttpStatAttributes, update the HTTP metric of the respective Metrics runtime
 	 * 
-	 * @param httpStatAttributes. Class = HttpStatAttributes
+	 * @param httpStatAttributes. Class = McpStatAttributes
 	 * @param duration
 	 */
-	public void updateToolMetrics(String toolName, Duration duration);
+	public void updateToolMetrics(McpStatAttributes mcpStatAttributes, Duration duration);
 
 }
 

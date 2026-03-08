@@ -190,6 +190,7 @@ public class McpServlet extends HttpServlet {
 
     @FFDCIgnore(ToolCallException.class)
     private void callTool(McpTransport transport) {
+        long startTime = System.currentTimeMillis();
         ExecutionRequestId requestId = createOngoingRequestId(transport);
         McpToolCallParams params = transport.getParams(McpToolCallParams.class);
         McpRequest request = transport.getMcpRequest();
@@ -214,6 +215,8 @@ public class McpServlet extends HttpServlet {
             } else {
                 callToolAndSendResponseSync(transport, requestId, request, params);
             }
+            long endTime = System.currentTimeMillis();
+            params.getMetadata().metricsMonitor().setToolDuration(endTime - startTime);
             params.getMetadata().metricsMonitor().recordToolCall(); // Record the tool call for monitor 1.0 metrics
         } catch (ToolCallException e) {
             // Catch validation errors that occur before calling the tool and should result in a tool call error response

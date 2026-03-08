@@ -7,16 +7,9 @@
  *
  * SPDX-License-Identifier: EPL-2.0
  *******************************************************************************/
-package io.openliberty.microprofile.telemetry20.internal.http;
+package io.openliberty.microprofile.telemetry20.internal.mcp;
 
-import static io.opentelemetry.semconv.ErrorAttributes.ERROR_TYPE;
-import static io.opentelemetry.semconv.HttpAttributes.HTTP_REQUEST_METHOD;
-import static io.opentelemetry.semconv.HttpAttributes.HTTP_RESPONSE_STATUS_CODE;
-import static io.opentelemetry.semconv.HttpAttributes.HTTP_ROUTE;
-import static io.opentelemetry.semconv.NetworkAttributes.NETWORK_PROTOCOL_VERSION;
-import static io.opentelemetry.semconv.ServerAttributes.SERVER_ADDRESS;
-import static io.opentelemetry.semconv.ServerAttributes.SERVER_PORT;
-import static io.opentelemetry.semconv.UrlAttributes.URL_SCHEME;
+import static io.openliberty.microprofile.telemetry20.internal.mcp.attributes.McpIncubatingAttributes.MCP_METHOD_NAME;
 
 import java.time.Duration;
 import java.util.Arrays;
@@ -38,8 +31,6 @@ import com.ibm.ws.container.service.state.ApplicationStateListener;
 import com.ibm.ws.container.service.state.StateChangeException;
 import com.ibm.ws.runtime.metadata.ComponentMetaData;
 
-import io.openliberty.http.monitor.HttpStatAttributes;
-import io.openliberty.http.monitor.metrics.HTTPMetricAdapter;
 import io.openliberty.microprofile.telemetry.internal.common.constants.OpenTelemetryConstants;
 import io.openliberty.microprofile.telemetry.internal.interfaces.OpenTelemetryAccessor;
 import io.opentelemetry.api.OpenTelemetry;
@@ -51,14 +42,14 @@ import io.opentelemetry.context.Context;
 /**
  *
  */
-@Component(service = { HTTPMetricAdapter.class, ApplicationStateListener.class }, configurationPolicy = ConfigurationPolicy.IGNORE)
-public class MPTelemetryHTTPMetricsAdapterImpl implements HTTPMetricAdapter, ApplicationStateListener {
+@Component(service = { McpMetricAdapter.class, ApplicationStateListener.class }, configurationPolicy = ConfigurationPolicy.IGNORE)
+public class MPTelemetryMcpMetricsAdapterImpl implements McpMetricAdapter, ApplicationStateListener {
 
-    private static final TraceComponent tc = Tr.register(MPTelemetryHTTPMetricsAdapterImpl.class);
+    private static final TraceComponent tc = Tr.register(MPTelemetryMcpMetricsAdapterImpl.class);
 
-    private static final String INSTR_SCOPE = "io.openliberty.microprofile.telemetry20.internal.http";
+    private static final String INSTR_SCOPE = "io.openliberty.microprofile.telemetry20.internal.mcp";
 
-    private static final String NO_APP_NAME_IDENTIFIER = "io.openliberty.microprofile.telemetry20.internal.http.no.app.name";
+    private static final String NO_APP_NAME_IDENTIFIER = "io.openliberty.microprofile.telemetry20.internal.mcp.no.app.name";
 
     private static final double NANO_CONVERSION = 0.000000001;
     private static final Double[] BUCKET_BOUNDARIES = { 0.01, 0.02, 0.05, 0.1, 0.2, 0.5, 1.0, 2.0, 5.0, 10.0, 30.0, 60.0, 120.0, 300.0 };
@@ -72,10 +63,10 @@ public class MPTelemetryHTTPMetricsAdapterImpl implements HTTPMetricAdapter, App
 
     //All access to threadUnsafeHTTPHistogramMap must be synchronized using httpHistogramMapLock
     private final WeakHashMap<OpenTelemetry, DoubleHistogram> threadUnsafeHTTPHistogramMap = new WeakHashMap<OpenTelemetry, DoubleHistogram>();
-    private final ReadWriteLock mcpHistogramMapLock = new ReentrantReadWriteLock();
+    private final ReadWriteLock httpHistogramMapLock = new ReentrantReadWriteLock();
 
     @Override
-    public void updateHttpMetrics(HttpStatAttributes httpStatAttributes, Duration duration) {
+    public void updateMcpMetrics(McpStatAttributes mcpStatAttributes, Duration duration) {
 
         OpenTelemetry otelInstance = OpenTelemetryAccessor.getOpenTelemetryInfo().getOpenTelemetry();
 
@@ -91,14 +82,14 @@ public class MPTelemetryHTTPMetricsAdapterImpl implements HTTPMetricAdapter, App
             if (otelInstance == null) {
                 if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled()) {
                     Tr.debug(tc,
-                             String.format("Unable to resolve an OpenTelemetry instance for the tool [%s]", httpStatAttributes.toString()));
+                             String.format("Unable to resolve an OpenTelemetry instance for the McpStatAttributes [%s]", mcpStatAttributes.toString()));
                 }
                 //do nothing - return
                 return;
             }
         }
 
-        DoubleHistogram httpHistogram = getHTTPHistogram(otelInstance);
+        DoubleHistogram mcpHistogram = getMcpHistogram(otelInstance);
 
         Context ctx = Context.current();
 
@@ -107,13 +98,13 @@ public class MPTelemetryHTTPMetricsAdapterImpl implements HTTPMetricAdapter, App
         String appName = getApplicationName();
         appName = appName == null ? NO_APP_NAME_IDENTIFIER : appName;
 
-        String keyID = httpStatAttributes.getHttpStatID();
+        String keyID = mcpStatAttributes.getMcpStatID();
 
-        // Key is the HttpStasID generated for each httpStatsAttribute
+        // Key is the mcpStasID generated for each httpStatsAttribute
         Map<String, Attributes> attributesMap = appNameToAttributesMap.computeIfAbsent(appName, x -> new ConcurrentHashMap<String, Attributes>());
-        Attributes attributes = attributesMap.computeIfAbsent(keyID, x -> retrieveAttributes(httpStatAttributes));
+        Attributes attributes = attributesMap.computeIfAbsent(keyID, x -> retrieveAttributes(mcpStatAttributes));
 
-        httpHistogram.record(seconds, attributes, ctx);
+        mcpHistogram.record(seconds, attributes, ctx);
 
     }
 
@@ -129,29 +120,23 @@ public class MPTelemetryHTTPMetricsAdapterImpl implements HTTPMetricAdapter, App
 
     }
 
-    private Attributes retrieveAttributes(HttpStatAttributes httpStatAttributes) {
+    private Attributes retrieveAttributes(McpStatAttributes mcpStatAttributes) {
 
         AttributesBuilder attributesBuilder = Attributes.builder();
-        attributesBuilder.put(HTTP_REQUEST_METHOD, httpStatAttributes.getRequestMethod());
-        attributesBuilder.put(URL_SCHEME, httpStatAttributes.getScheme());
+        attributesBuilder.put(MCP_METHOD_NAME, mcpStatAttributes.getMcpMethodName());
 
-        Integer responseStatus = httpStatAttributes.getResponseStatus();
-        if (responseStatus != null) {
-            attributesBuilder.put(HTTP_RESPONSE_STATUS_CODE, Long.valueOf(responseStatus));
-        }
-
-        String httpRoute = httpStatAttributes.getHttpRoute();
+        String httpRoute = mcpStatAttributes.getHttpRoute();
         if (httpRoute != null) {
             attributesBuilder.put(HTTP_ROUTE, httpRoute);
 
         }
 
-        attributesBuilder.put(NETWORK_PROTOCOL_VERSION, httpStatAttributes.getNetworkProtocolVersion());
+        attributesBuilder.put(NETWORK_PROTOCOL_VERSION, mcpStatAttributes.getNetworkProtocolVersion());
 
-        attributesBuilder.put(SERVER_ADDRESS, httpStatAttributes.getServerName());
-        attributesBuilder.put(SERVER_PORT, Long.valueOf(httpStatAttributes.getServerPort()));
+        attributesBuilder.put(SERVER_ADDRESS, mcpStatAttributes.getServerName());
+        attributesBuilder.put(SERVER_PORT, Long.valueOf(mcpStatAttributes.getServerPort()));
 
-        String errorType = httpStatAttributes.getErrorType();
+        String errorType = mcpStatAttributes.getErrorType();
         if (errorType != null) {
             attributesBuilder.put(ERROR_TYPE, errorType);
         }
@@ -167,7 +152,7 @@ public class MPTelemetryHTTPMetricsAdapterImpl implements HTTPMetricAdapter, App
      *
      * However we cannot share it across multiple instances of OpenTelemetry
      */
-    private DoubleHistogram getHTTPHistogram(OpenTelemetry otelInstance) {
+    private DoubleHistogram getMcpHistogram(OpenTelemetry otelInstance) {
 
         try {
             httpHistogramMapLock.readLock().lock();

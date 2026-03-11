@@ -1,0 +1,1 @@
+-javaagent:C:/Users/IssacAbraham/Documents/jars/jmx_prometheus_javaagent-0.20.0.jar=9404:C:/Users/IssacAbraham/Documents/repos/open-liberty/dev/io.openliberty.mcp.internal_fat/publish/servers/mcp-server-telemetry/jmx-config.yaml

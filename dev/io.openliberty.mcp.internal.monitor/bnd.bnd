@@ -21,19 +21,20 @@ WS-TraceGroup: MCP
 
 Import-Package: *
 
-Export-Package: io.openliberty.mcp.internal.monitor
-
-Liberty-Monitoring-Components: io.openliberty.mcp.internal.monitor.McpMonitor
+Export-Package: \
+  io.openliberty.mcp.internal.monitor;thread-context=true,\
+  io.openliberty.mcp.internal.monitor.metrics
 
 instrument.disabled: true
 
 -buildpath: \
-    io.openliberty.mcp;version=latest,\
-    com.ibm.ws.monitor;version=latest,\
-    com.ibm.websphere.org.osgi.core;version=latest, \
-    com.ibm.websphere.org.osgi.service.component;version=latest, \
-    com.ibm.wsspi.org.osgi.service.component.annotations;version=latest, \
-    com.ibm.ws.org.osgi.annotation.versioning;version=latest, \
-    com.ibm.ws.logging.core;version=latest, \
-    com.ibm.ws.kernel.service;version=latest,\
-
+	io.openliberty.mcp.internal;version=latest,\
+	io.openliberty.jakarta.servlet.6.0;version=latest,\
+	com.ibm.ws.monitor;version=latest,\
+	com.ibm.websphere.org.osgi.core;version=latest,\
+	com.ibm.websphere.org.osgi.service.component;version=latest,\
+	com.ibm.wsspi.org.osgi.service.component.annotations;version=latest,\
+	com.ibm.ws.org.osgi.annotation.versioning;version=latest,\
+	com.ibm.ws.logging.core;version=latest,\
+	com.ibm.ws.kernel.service;version=latest,\
+	com.ibm.websphere.javaee.servlet.3.0

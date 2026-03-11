@@ -37,7 +37,6 @@ public class ToolMetadataTestUtility {
                                 null,
                                 Optional.empty(),
                                 null,
-                                null,
                                 Instant.now());
     }
 }

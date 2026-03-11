@@ -38,7 +38,6 @@ import io.openliberty.mcp.internal.security.SecurityRequirement;
 import io.openliberty.mcp.internal.tools.AsyncBeanMethodHandler;
 import io.openliberty.mcp.internal.tools.BeanMethodHandler.MethodMetadata;
 import io.openliberty.mcp.internal.tools.SyncBeanMethodHandler;
-import io.openliberty.mcp.monitor.McpStatsMonitor;
 import io.openliberty.mcp.tools.ToolManager;
 import io.openliberty.mcp.tools.ToolManager.ToolAnnotations;
 import io.openliberty.mcp.tools.ToolManager.ToolArgument;
@@ -79,7 +78,6 @@ public record ToolMetadata(String name,
                            Function<ToolArguments, ToolResponse> handler,
                            Function<ToolArguments, CompletionStage<ToolResponse>> asyncHandler,
                            Optional<MethodMetadata> methodMetadata,
-                           McpStatsMonitor metricsMonitor,
                            SecurityRequirement securityRequirement,
                            Instant createdAt) implements ToolManager.ToolInfo {
 
@@ -109,7 +107,7 @@ public record ToolMetadata(String name,
      * @param jsonb the jsonb to use to serialize structured content
      * @return the created tool metadata
      */
-    public static ToolMetadata createFrom(Tool annotation, Bean<?> bean, AnnotatedMethod<?> method, BeanManager bm, Jsonb jsonb, McpStatsMonitor metricsMonitor) {
+    public static ToolMetadata createFrom(Tool annotation, Bean<?> bean, AnnotatedMethod<?> method, BeanManager bm, Jsonb jsonb) {
         String name = annotation.name().equals(Tool.ELEMENT_NAME) ? method.getJavaMember().getName() : annotation.name();
         String title = annotation.title().isEmpty() ? null : annotation.title();
         String description = annotation.description().isEmpty() ? null : annotation.description();
@@ -193,7 +191,6 @@ public record ToolMetadata(String name,
                                 handler,
                                 asyncHandler,
                                 Optional.of(methodMetadata),
-                                metricsMonitor,
                                 SecurityRequirement.createFrom(method),
                                 Instant.now());
     }

@@ -9,7 +9,18 @@
  *******************************************************************************/
 package io.openliberty.microprofile.telemetry20.internal.mcp;
 
+import static io.openliberty.microprofile.telemetry20.internal.mcp.attributes.ErrorIncubatingAttributes.ERROR_TYPE;
+import static io.openliberty.microprofile.telemetry20.internal.mcp.attributes.GenAiIncubatingAttributes.GEN_AI_OPERATION_NAME;
+import static io.openliberty.microprofile.telemetry20.internal.mcp.attributes.GenAiIncubatingAttributes.GEN_AI_PROMPT_NAME;
+import static io.openliberty.microprofile.telemetry20.internal.mcp.attributes.GenAiIncubatingAttributes.GEN_AI_TOOL_NAME;
+import static io.openliberty.microprofile.telemetry20.internal.mcp.attributes.JsonrpcIncubatingAttributes.JSONRPC_PROTOCOL_VERSION;
 import static io.openliberty.microprofile.telemetry20.internal.mcp.attributes.McpIncubatingAttributes.MCP_METHOD_NAME;
+import static io.openliberty.microprofile.telemetry20.internal.mcp.attributes.McpIncubatingAttributes.MCP_PROTOCOL_VERSION;
+import static io.openliberty.microprofile.telemetry20.internal.mcp.attributes.McpIncubatingAttributes.MCP_RESOURCE_URI;
+import static io.openliberty.microprofile.telemetry20.internal.mcp.attributes.NetworkIncubatingAttributes.NETWORK_PROTOCOL_NAME;
+import static io.openliberty.microprofile.telemetry20.internal.mcp.attributes.NetworkIncubatingAttributes.NETWORK_PROTOCOL_VERSION;
+import static io.openliberty.microprofile.telemetry20.internal.mcp.attributes.NetworkIncubatingAttributes.NETWORK_TRANSPORT;
+import static io.openliberty.microprofile.telemetry20.internal.mcp.attributes.RpcIncubatingAttributes.RPC_RESPONSE_STATUS_CODE;
 
 import java.time.Duration;
 import java.util.Arrays;
@@ -31,6 +42,8 @@ import com.ibm.ws.container.service.state.ApplicationStateListener;
 import com.ibm.ws.container.service.state.StateChangeException;
 import com.ibm.ws.runtime.metadata.ComponentMetaData;
 
+import io.openliberty.mcp.internal.monitor.McpStatAttributes;
+import io.openliberty.mcp.internal.monitor.metrics.McpMetricAdapter;
 import io.openliberty.microprofile.telemetry.internal.common.constants.OpenTelemetryConstants;
 import io.openliberty.microprofile.telemetry.internal.interfaces.OpenTelemetryAccessor;
 import io.opentelemetry.api.OpenTelemetry;
@@ -62,8 +75,8 @@ public class MPTelemetryMcpMetricsAdapterImpl implements McpMetricAdapter, Appli
     private static Map<String, Map<String, Attributes>> appNameToAttributesMap = new ConcurrentHashMap<String, Map<String, Attributes>>();
 
     //All access to threadUnsafeHTTPHistogramMap must be synchronized using httpHistogramMapLock
-    private final WeakHashMap<OpenTelemetry, DoubleHistogram> threadUnsafeHTTPHistogramMap = new WeakHashMap<OpenTelemetry, DoubleHistogram>();
-    private final ReadWriteLock httpHistogramMapLock = new ReentrantReadWriteLock();
+    private final WeakHashMap<OpenTelemetry, DoubleHistogram> threadUnsafeMcpHistogramMap = new WeakHashMap<OpenTelemetry, DoubleHistogram>();
+    private final ReadWriteLock mcpHistogramMapLock = new ReentrantReadWriteLock();
 
     @Override
     public void updateMcpMetrics(McpStatAttributes mcpStatAttributes, Duration duration) {
@@ -98,7 +111,7 @@ public class MPTelemetryMcpMetricsAdapterImpl implements McpMetricAdapter, Appli
         String appName = getApplicationName();
         appName = appName == null ? NO_APP_NAME_IDENTIFIER : appName;
 
-        String keyID = mcpStatAttributes.getMcpStatID();
+        String keyID = mcpStatAttributes.getMcpStat_ID();
 
         // Key is the mcpStasID generated for each httpStatsAttribute
         Map<String, Attributes> attributesMap = appNameToAttributesMap.computeIfAbsent(appName, x -> new ConcurrentHashMap<String, Attributes>());
@@ -125,20 +138,59 @@ public class MPTelemetryMcpMetricsAdapterImpl implements McpMetricAdapter, Appli
         AttributesBuilder attributesBuilder = Attributes.builder();
         attributesBuilder.put(MCP_METHOD_NAME, mcpStatAttributes.getMcpMethodName());
 
-        String httpRoute = mcpStatAttributes.getHttpRoute();
-        if (httpRoute != null) {
-            attributesBuilder.put(HTTP_ROUTE, httpRoute);
-
-        }
-
-        attributesBuilder.put(NETWORK_PROTOCOL_VERSION, mcpStatAttributes.getNetworkProtocolVersion());
-
-        attributesBuilder.put(SERVER_ADDRESS, mcpStatAttributes.getServerName());
-        attributesBuilder.put(SERVER_PORT, Long.valueOf(mcpStatAttributes.getServerPort()));
-
         String errorType = mcpStatAttributes.getErrorType();
         if (errorType != null) {
             attributesBuilder.put(ERROR_TYPE, errorType);
+        }
+
+        String genAiPromptName = mcpStatAttributes.getGenAiPromptName();
+        if (genAiPromptName != null) {
+            attributesBuilder.put(GEN_AI_PROMPT_NAME, genAiPromptName);
+        }
+
+        String genAiToolName = mcpStatAttributes.getGenAiToolName();
+        if (genAiPromptName != null) {
+            attributesBuilder.put(GEN_AI_TOOL_NAME, genAiToolName);
+        }
+
+        String rpcResponseStatusCode = mcpStatAttributes.getRpcResponseStatusCode();
+        if (rpcResponseStatusCode != null) {
+            attributesBuilder.put(RPC_RESPONSE_STATUS_CODE, rpcResponseStatusCode);
+        }
+
+        String genAiOperationName = mcpStatAttributes.getGenAiOperationName();
+        if (genAiOperationName != null) {
+            attributesBuilder.put(GEN_AI_OPERATION_NAME, genAiOperationName);
+        }
+
+        String jsonrpcProtocolVersion = mcpStatAttributes.getJsonrpcProtocolVersion();
+        if (jsonrpcProtocolVersion != null) {
+            attributesBuilder.put(JSONRPC_PROTOCOL_VERSION, jsonrpcProtocolVersion);
+        }
+
+        String mcpProtocolVersion = mcpStatAttributes.getMcpProtocolVersion();
+        if (mcpProtocolVersion != null) {
+            attributesBuilder.put(MCP_PROTOCOL_VERSION, mcpProtocolVersion);
+        }
+
+        String networkProtocolName = mcpStatAttributes.getNetworkProtocolName();
+        if (networkProtocolName != null) {
+            attributesBuilder.put(NETWORK_PROTOCOL_NAME, networkProtocolName);
+        }
+
+        String networkProtocolVersion = mcpStatAttributes.getNetworkProtocolVersion();
+        if (networkProtocolVersion != null) {
+            attributesBuilder.put(NETWORK_PROTOCOL_VERSION, networkProtocolVersion);
+        }
+
+        String networkTransport = mcpStatAttributes.getNetworkTransport();
+        if (networkTransport != null) {
+            attributesBuilder.put(NETWORK_TRANSPORT, networkTransport);
+        }
+
+        String mcpResourceUri = mcpStatAttributes.getMcpResourceUri();
+        if (mcpResourceUri != null) {
+            attributesBuilder.put(MCP_RESOURCE_URI, mcpResourceUri);
         }
 
         return attributesBuilder.build();
@@ -155,24 +207,24 @@ public class MPTelemetryMcpMetricsAdapterImpl implements McpMetricAdapter, Appli
     private DoubleHistogram getMcpHistogram(OpenTelemetry otelInstance) {
 
         try {
-            httpHistogramMapLock.readLock().lock();
-            if (threadUnsafeHTTPHistogramMap.containsKey(otelInstance)) {
-                return threadUnsafeHTTPHistogramMap.get(otelInstance);
+            mcpHistogramMapLock.readLock().lock();
+            if (threadUnsafeMcpHistogramMap.containsKey(otelInstance)) {
+                return threadUnsafeMcpHistogramMap.get(otelInstance);
             }
         } finally {
-            httpHistogramMapLock.readLock().unlock();
+            mcpHistogramMapLock.readLock().unlock();
         }
 
         try {
-            httpHistogramMapLock.writeLock().lock();
-            return threadUnsafeHTTPHistogramMap.computeIfAbsent(otelInstance,
-                                                                (OpenTelemetry openTelemetry) -> openTelemetry.getMeterProvider().get(INSTR_SCOPE)
-                                                                                .histogramBuilder(OpenTelemetryConstants.HTTP_SERVER_REQUEST_DURATION_NAME)
-                                                                                .setUnit(OpenTelemetryConstants.OTEL_SECONDS_UNIT)
-                                                                                .setDescription(OpenTelemetryConstants.HTTP_SERVER_REQUEST_DURATION_DESC)
-                                                                                .setExplicitBucketBoundariesAdvice(BUCKET_BOUNDARIES_LIST).build());
+            mcpHistogramMapLock.writeLock().lock();
+            return threadUnsafeMcpHistogramMap.computeIfAbsent(otelInstance,
+                                                               (OpenTelemetry openTelemetry) -> openTelemetry.getMeterProvider().get(INSTR_SCOPE)
+                                                                               .histogramBuilder(OpenTelemetryConstants.MCP_SERVER_OPERATION_DURATION_NAME)
+                                                                               .setUnit(OpenTelemetryConstants.OTEL_SECONDS_UNIT)
+                                                                               .setDescription(OpenTelemetryConstants.MCP_SERVER_OPERATION_DURATION_DESC)
+                                                                               .setExplicitBucketBoundariesAdvice(BUCKET_BOUNDARIES_LIST).build());
         } finally {
-            httpHistogramMapLock.writeLock().unlock();
+            mcpHistogramMapLock.writeLock().unlock();
         }
     }
 

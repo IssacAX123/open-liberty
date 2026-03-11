@@ -32,7 +32,6 @@ import io.openliberty.mcp.internal.requests.McpRequestIdSerializer;
 import io.openliberty.mcp.internal.schemas.SchemaRegistry;
 import io.openliberty.mcp.internal.tools.BeanMethodHandler.MethodMetadata;
 import io.openliberty.mcp.messaging.Encoder;
-import io.openliberty.mcp.monitor.McpStatsMonitor;
 import io.openliberty.mcp.tools.ToolManager.ToolArgument;
 import io.openliberty.mcp.tools.ToolResponseEncoder;
 import jakarta.enterprise.context.spi.CreationalContext;
@@ -245,8 +244,7 @@ public class McpCdiExtension implements Extension {
     private void registerTool(Tool tool, Bean<?> bean, AnnotatedMethod<?> method, BeanManager beanManager) {
         try {
 //            String toolClassAndMethodName = method.getJavaMember().getDeclaringClass().getName() + "." + method.getJavaMember().getName();
-            McpStatsMonitor mcpMetricsMonitor = new McpStatsMonitor(tool.name());
-            ToolMetadata toolmd = ToolMetadata.createFrom(tool, bean, method, beanManager, jsonb, mcpMetricsMonitor);
+            ToolMetadata toolmd = ToolMetadata.createFrom(tool, bean, method, beanManager, jsonb);
             List<String> duplicatesList = duplicateToolsMap.computeIfAbsent(toolmd.name(), key -> new ArrayList<>());
             duplicatesList.add(toolmd.getToolQualifiedName());
             if (duplicatesList.size() <= 1) {

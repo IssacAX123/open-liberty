@@ -5,16 +5,42 @@ import com.ibm.websphere.monitor.meters.StatisticsReading;
 import com.ibm.websphere.monitor.meters.Counter;
 import com.ibm.websphere.monitor.meters.Meter;
 
-import io.openliberty.mcp.annotations.Tool;
 
 public class McpStats extends Meter implements McpStatsMXBean {
+	private final String mcpMethodName;
+    
+    /*
+     * Conditionally required as per HTTP Semantics Convention
+     */ 
+    private final String errorType, genAiPromptName, genAiToolName, rpcResponseStatusCode;
+    
+    /*
+     * Optional fields.
+     * We are unable to facilitate capturing Exceptions
+     * But we will leave it here.
+     * Additional Context : We can capture  exceptions thrown by servlets
+     * by surrounding the the chainFilter with try catch. But we have no way
+     * of capturing application exception of Jaxrs/restfulws exceptions
+     */
+    private final String genAiOperationName, jsonrpcProtocolVersion, mcpProtocolVersion, networkProtocolName, networkProtocolVersion, networkTransport, mcpResourceUri;
 	
-	private String toolName;
+	
 	private Counter toolCallCount;
 	private StatisticsMeter toolCallRunDuration;
 	
 	public McpStats(McpStatAttributes mcpStatAttributes) {
-		this.toolName = mcpStatAttributes.getMcpMethodName();
+		this.mcpMethodName = mcpStatAttributes.getMcpMethodName();
+		this.errorType = mcpStatAttributes.getErrorType();
+		this.genAiPromptName = mcpStatAttributes.getGenAiPromptName();
+		this.genAiToolName = mcpStatAttributes.getGenAiToolName();
+		this.rpcResponseStatusCode = mcpStatAttributes.getRpcResponseStatusCode();
+		this.genAiOperationName = mcpStatAttributes.getGenAiOperationName();
+		this.jsonrpcProtocolVersion = mcpStatAttributes.getJsonrpcProtocolVersion();
+		this.mcpProtocolVersion = mcpStatAttributes.getMcpMethodName();
+		this.networkProtocolName = mcpStatAttributes.getNetworkProtocolName();
+		this.networkProtocolVersion = mcpStatAttributes.getNetworkProtocolVersion();
+		this.networkTransport = mcpStatAttributes.getNetworkTransport();
+		this.mcpResourceUri = mcpStatAttributes.getMcpResourceUri();
 		
 		toolCallCount = new Counter();
 		toolCallCount.setDescription("Total calls of an MCP tool");
@@ -25,10 +51,6 @@ public class McpStats extends Meter implements McpStatsMXBean {
 
 	}
 
-	public String getToolName() {
-		return toolName;
-	}
-	
 	public void incrementToolCallCountBy(int i) {
 		toolCallCount.incrementBy(i);
 	}
@@ -36,16 +58,80 @@ public class McpStats extends Meter implements McpStatsMXBean {
 	public void addToolTimeStat(long time) {
 		toolCallRunDuration.addDataPoint(time);
 	}
-	
+
 	@Override
-	public long getToolCallCount() {
+	public String getMcpMethodName() {
+		return mcpMethodName;
+	}
+
+	@Override
+	public String getErrorType() {
+		return errorType;
+	}
+
+	@Override
+	public String getGenAiPromptName() {
+		return genAiPromptName;
+	}
+
+	@Override
+	public String getGenAiToolName() {
+		return genAiToolName;
+	}
+
+	@Override
+	public String getRpcResponseStatusCode() {
+		return rpcResponseStatusCode;
+	}
+
+	@Override
+	public String getGenAiOperationName() {
+		return genAiOperationName;
+	}
+
+	@Override
+	public String getJsonrpcProtocolVersion() {
+		return jsonrpcProtocolVersion;
+	}
+
+	@Override
+	public String getMcpProtocolVersion() {
+		return mcpProtocolVersion;
+	}
+
+	@Override
+	public String getNetworkProtocolName() {
+		return networkProtocolName;
+	}
+
+	@Override
+	public String getNetworkProtocolVersion() {
+		return networkProtocolVersion;
+	}
+
+	@Override
+	public String getNetworkTransport() {
+		return networkTransport;
+	}
+
+	@Override
+	public String getMcpResourceUri() {
+		return mcpResourceUri;
+	}
+
+	@Override
+	public long getCount() {
 		return toolCallCount.getCurrentValue();
 	}
-	
+
 	@Override
-	public StatisticsReading getToolCallDurationReading() {
-		return toolCallRunDuration.getReading();
+	public double getDuration() {
+		return toolCallRunDuration.getTotal();
 	}
+	
+	
+
+
 
 
 }

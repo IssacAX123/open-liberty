@@ -61,7 +61,7 @@ public class MPTelemetryHTTPMetricsAdapterImpl implements HTTPMetricAdapter, App
     private static final String NO_APP_NAME_IDENTIFIER = "io.openliberty.microprofile.telemetry20.internal.http.no.app.name";
 
     private static final double NANO_CONVERSION = 0.000000001;
-    private static final Double[] BUCKET_BOUNDARIES = { 0.01, 0.02, 0.05, 0.1, 0.2, 0.5, 1.0, 2.0, 5.0, 10.0, 30.0, 60.0, 120.0, 300.0 };
+    private static final Double[] BUCKET_BOUNDARIES = { 0.005, 0.01, 0.025, 0.05, 0.075, 0.1, 0.25, 0.5, 0.75, 1.0, 2.5, 5.0, 7.5, 10.0 };
     private static final List<Double> BUCKET_BOUNDARIES_LIST = Arrays.asList(BUCKET_BOUNDARIES);
 
     /**
@@ -72,7 +72,7 @@ public class MPTelemetryHTTPMetricsAdapterImpl implements HTTPMetricAdapter, App
 
     //All access to threadUnsafeHTTPHistogramMap must be synchronized using httpHistogramMapLock
     private final WeakHashMap<OpenTelemetry, DoubleHistogram> threadUnsafeHTTPHistogramMap = new WeakHashMap<OpenTelemetry, DoubleHistogram>();
-    private final ReadWriteLock mcpHistogramMapLock = new ReentrantReadWriteLock();
+    private final ReadWriteLock httpHistogramMapLock = new ReentrantReadWriteLock();
 
     @Override
     public void updateHttpMetrics(HttpStatAttributes httpStatAttributes, Duration duration) {
@@ -91,7 +91,7 @@ public class MPTelemetryHTTPMetricsAdapterImpl implements HTTPMetricAdapter, App
             if (otelInstance == null) {
                 if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled()) {
                     Tr.debug(tc,
-                             String.format("Unable to resolve an OpenTelemetry instance for the tool [%s]", httpStatAttributes.toString()));
+                             String.format("Unable to resolve an OpenTelemetry instance for the HttpStatAttributes [%s]", httpStatAttributes.toString()));
                 }
                 //do nothing - return
                 return;

@@ -44,7 +44,6 @@ import com.ibm.ws.container.service.state.ApplicationStateListener;
 import com.ibm.ws.container.service.state.StateChangeException;
 import com.ibm.ws.runtime.metadata.ComponentMetaData;
 
-import io.openliberty.http.monitor.metrics.HTTPMetricAdapter;
 import io.openliberty.mcp.internal.monitor.McpStatAttributes;
 import io.openliberty.mcp.internal.monitor.metrics.McpMetricAdapter;
 import io.openliberty.microprofile.metrics50.SharedMetricRegistries;
@@ -53,7 +52,7 @@ import io.openliberty.microprofile.metrics50.helper.Constants;
 /**
  *
  */
-@Component(service = { HTTPMetricAdapter.class, ApplicationStateListener.class },
+@Component(service = { McpMetricAdapter.class, ApplicationStateListener.class },
         configurationPolicy = ConfigurationPolicy.IGNORE)
 public class MPMetricsMcpMetricsAdapterImpl implements McpMetricAdapter, ApplicationStateListener {
 

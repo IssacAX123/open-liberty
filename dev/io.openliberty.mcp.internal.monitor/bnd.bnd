@@ -19,13 +19,17 @@ javac.target: 17
 
 WS-TraceGroup: MCP
 
-Import-Package: *
+Import-Package: \
+	!io.openliberty.mcp.internal.*;version=latest,\
+	*
+
+DynamicImport-Package: \
+  io.openliberty.mcp.internal.*
 
 Export-Package: \
   io.openliberty.mcp.internal.monitor;thread-context=true,\
   io.openliberty.mcp.internal.monitor.metrics
 
-instrument.disabled: true
 
 -buildpath: \
 	io.openliberty.mcp.internal;version=latest,\
@@ -36,5 +40,4 @@ instrument.disabled: true
 	com.ibm.wsspi.org.osgi.service.component.annotations;version=latest,\
 	com.ibm.ws.org.osgi.annotation.versioning;version=latest,\
 	com.ibm.ws.logging.core;version=latest,\
-	com.ibm.ws.kernel.service;version=latest,\
-	com.ibm.websphere.javaee.servlet.3.0
+	com.ibm.ws.kernel.service;version=latest

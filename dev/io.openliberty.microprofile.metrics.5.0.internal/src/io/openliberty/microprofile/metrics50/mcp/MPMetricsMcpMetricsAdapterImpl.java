@@ -26,11 +26,11 @@ import java.time.Duration;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.eclipse.microprofile.metrics.Histogram;
 import org.eclipse.microprofile.metrics.Metadata;
 import org.eclipse.microprofile.metrics.MetadataBuilder;
 import org.eclipse.microprofile.metrics.MetricRegistry;
 import org.eclipse.microprofile.metrics.Tag;
+import org.eclipse.microprofile.metrics.Timer;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.ConfigurationPolicy;
@@ -61,6 +61,7 @@ public class MPMetricsMcpMetricsAdapterImpl implements McpMetricAdapter, Applica
     private static final TraceComponent tc = Tr.register(MPMetricsMcpMetricsAdapterImpl.class);
 
     private static final String NO_APP_NAME_IDENTIFIER = "io.openliberty.microprofile.metrics50.internal.http.no.app.name";
+    private static final long NANO_CONVERSION = (long) 0.000000001;
 
     /**
      * Mapping between application name to a map of HTTP stats ID mapped to
@@ -99,8 +100,8 @@ public class MPMetricsMcpMetricsAdapterImpl implements McpMetricAdapter, Applica
                 x -> new ConcurrentHashMap<String, Tag[]>());
         Tag[] tags = attributesMap.computeIfAbsent(keyID, x -> retrieveTags(mcpStatAttributes));
 
-        Histogram mcpTimer = vendorRegistry.histogram(md, tags);
-        mcpTimer.update(duration.toSeconds());
+        Timer mcpTimer = vendorRegistry.timer(md, tags);
+        mcpTimer.update(duration);
         ;
 
     }

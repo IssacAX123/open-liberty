@@ -1,18 +1,16 @@
 <server description="Sample Liberty server with Telemetry Enabled">
-
-  <featureManager>
-    <feature>componenttest-2.0</feature>
-    <feature>servlet-6.0</feature>
-    <feature>cdi-4.0</feature>
-    <feature>mcpServer-1.0</feature>
-    <feature>mpTelemetry-2.1</feature>
-    <feature>mpMetric-5.1</feature>
-  </featureManager>
-  <mpMetrics authentication="false" />
-  <mpTelemetry>
-    <exporter type="otlp" endpoint="http://localhost:4318" />
-</mpTelemetry>
-
-  <include location="../fatTestPorts.xml" />
-  
+	<featureManager>
+		<feature>mcpServer-1.0</feature>
+		<feature>componenttest-2.0</feature>
+		<feature>mpMetrics-5.1</feature>
+		<feature>cdi-4.0</feature>
+		<feature>mpTelemetry-2.1</feature>
+		<feature>monitor-1.0</feature>
+		<feature>servlet-6.0</feature>
+	</featureManager>
+	<include location="../fatTestPorts.xml"/>
+	<mpMetrics authentication="false"/>
+	<mpTelemetry>
+		<exporter endpoint="http://localhost:4318" type="otlp"/>
+	</mpTelemetry>
 </server>

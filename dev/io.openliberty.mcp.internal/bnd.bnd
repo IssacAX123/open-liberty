@@ -23,20 +23,22 @@ Require-Capability: osgi.ee; filter:="(&(osgi.ee=JavaSE)(version=17))"
 WS-TraceGroup: MCP
 
 Export-Package: \
-	io.openliberty.mcp.internal.*;version=${bVersion}
+	io.openliberty.mcp.internal.*;thread-context=true;version=${bVersion},\
 	
 
 
 Import-Package: \
+	!io.openliberty.mcp.internal.monitor.*,\
     *  
+
+DynamicImport-Package: \
+  io.openliberty.mcp.internal.monitor.*
   
 Include-Resource: \
         OSGI-INF=resources/OSGI-INF
 
 Bundle-Localization: \
         OSGI-INF/l10n/metatype
-
-Liberty-Monitoring-Components: io.openliberty.mcp.internal.monitor.McpStatsMonitor
 			
 -dsannotations: \
  io.openliberty.mcp.internal.McpServletInitializer,\
@@ -59,7 +61,9 @@ Liberty-Monitoring-Components: io.openliberty.mcp.internal.monitor.McpStatsMonit
 	io.openliberty.jakarta.jsonp.2.1;version=latest,\
 	com.ibm.ws.cdi.interfaces.jakarta;version=latest,\
 	com.ibm.ws.transport.http;version=latest,\
-	com.ibm.ws.kernel.service;version=latest
+	com.ibm.ws.kernel.service;version=latest,\
+	io.openliberty.mcp.internal.monitor,\
+	com.ibm.ws.monitor;version=latest
 	
 
 -testpath: \

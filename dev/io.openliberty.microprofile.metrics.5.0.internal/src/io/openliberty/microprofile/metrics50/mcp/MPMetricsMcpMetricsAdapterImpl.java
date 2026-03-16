@@ -107,47 +107,51 @@ public class MPMetricsMcpMetricsAdapterImpl implements McpMetricAdapter, Applica
 
     private Tag[] retrieveTags(McpStatAttributes mcpStatAttributes) {
 
-        Tag mcpMethodNameTag = new Tag(MCP_METHOD_NAME.getKey(), mcpStatAttributes.getMcpMethodName());
+        Tag mcpMethodNameTag = new Tag(MCP_METHOD_NAME.getKey().replace(".", "_"),
+                mcpStatAttributes.getMcpMethodName());
 
         String errorType = mcpStatAttributes.getErrorType();
-        Tag errorTypeTag = new Tag(ERROR_TYPE.getKey(), (errorType == null ? "" : errorType));
+        Tag errorTypeTag = new Tag(ERROR_TYPE.getKey().replace(".", "_"), (errorType == null ? "" : errorType));
 
         String genAiPromptName = mcpStatAttributes.getGenAiPromptName();
-        Tag genAiPromptNameTag = new Tag(GEN_AI_PROMPT_NAME.getKey(), (genAiPromptName == null ? "" : genAiPromptName));
+        Tag genAiPromptNameTag = new Tag(GEN_AI_PROMPT_NAME.getKey().replace(".", "_"),
+                (genAiPromptName == null ? "" : genAiPromptName));
 
         String genAiToolName = mcpStatAttributes.getGenAiToolName();
-        Tag genAiToolNameTag = new Tag(GEN_AI_TOOL_NAME.getKey(), (genAiToolName == null ? "" : genAiToolName));
+        Tag genAiToolNameTag = new Tag(GEN_AI_TOOL_NAME.getKey().replace(".", "_"),
+                (genAiToolName == null ? "" : genAiToolName));
 
         String rpcResponseStatusCode = mcpStatAttributes.getRpcResponseStatusCode();
-        Tag rpcResponseStatusCodeTag = new Tag(RPC_RESPONSE_STATUS_CODE.getKey(),
+        Tag rpcResponseStatusCodeTag = new Tag(RPC_RESPONSE_STATUS_CODE.getKey().replace(".", "_"),
                 (rpcResponseStatusCode == null ? "" : rpcResponseStatusCode));
 
         String genAiOperationName = mcpStatAttributes.getGenAiOperationName();
-        Tag genAiOperationNameTag = new Tag(GEN_AI_OPERATION_NAME.getKey(),
+        Tag genAiOperationNameTag = new Tag(GEN_AI_OPERATION_NAME.getKey().replace(".", "_"),
                 (genAiOperationName == null ? "" : genAiOperationName));
 
         String jsonrpcProtocolVersion = mcpStatAttributes.getJsonrpcProtocolVersion();
-        Tag jsonrpcProtocolVersionTag = new Tag(JSONRPC_PROTOCOL_VERSION.getKey(),
+        Tag jsonrpcProtocolVersionTag = new Tag(JSONRPC_PROTOCOL_VERSION.getKey().replace(".", "_"),
                 (jsonrpcProtocolVersion == null ? "" : jsonrpcProtocolVersion));
 
         String mcpProtocolVersion = mcpStatAttributes.getMcpProtocolVersion();
-        Tag mcpProtocolVersionTag = new Tag(MCP_PROTOCOL_VERSION.getKey(),
+        Tag mcpProtocolVersionTag = new Tag(MCP_PROTOCOL_VERSION.getKey().replace(".", "_"),
                 (mcpProtocolVersion == null ? "" : mcpProtocolVersion));
 
         String networkProtocolName = mcpStatAttributes.getNetworkProtocolName();
-        Tag networkProtocolNameTag = new Tag(NETWORK_PROTOCOL_NAME.getKey(),
+        Tag networkProtocolNameTag = new Tag(NETWORK_PROTOCOL_NAME.getKey().replace(".", "_"),
                 (networkProtocolName == null ? "" : networkProtocolName));
 
         String networkProtocolVersion = mcpStatAttributes.getNetworkProtocolVersion();
-        Tag networkProtocolVersionTag = new Tag(NETWORK_PROTOCOL_VERSION.getKey(),
+        Tag networkProtocolVersionTag = new Tag(NETWORK_PROTOCOL_VERSION.getKey().replace(".", "_"),
                 (networkProtocolVersion == null ? "" : networkProtocolVersion));
 
         String networkTransport = mcpStatAttributes.getNetworkTransport();
-        Tag networkTransportTag = new Tag(NETWORK_TRANSPORT.getKey(),
+        Tag networkTransportTag = new Tag(NETWORK_TRANSPORT.getKey().replace(".", "_"),
                 (networkTransport == null ? "" : networkTransport));
 
         String mcpResourceUri = mcpStatAttributes.getMcpResourceUri();
-        Tag mcpResourceUriTag = new Tag(MCP_RESOURCE_URI.getKey(), (mcpResourceUri == null ? "" : mcpResourceUri));
+        Tag mcpResourceUriTag = new Tag(MCP_RESOURCE_URI.getKey().replace(".", "_"),
+                (mcpResourceUri == null ? "" : mcpResourceUri));
 
         Tag[] ret = new Tag[] { mcpMethodNameTag, errorTypeTag, genAiPromptNameTag, genAiToolNameTag,
                 rpcResponseStatusCodeTag, genAiOperationNameTag, jsonrpcProtocolVersionTag, mcpProtocolVersionTag,

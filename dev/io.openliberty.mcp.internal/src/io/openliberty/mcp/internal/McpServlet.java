@@ -12,6 +12,7 @@ package io.openliberty.mcp.internal;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.security.Principal;
+import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
@@ -39,6 +40,8 @@ import io.openliberty.mcp.internal.exceptions.jsonrpc.JSONRPCErrorCode;
 import io.openliberty.mcp.internal.exceptions.jsonrpc.JSONRPCException;
 import io.openliberty.mcp.internal.exceptions.jsonrpc.McpResponseException;
 import io.openliberty.mcp.internal.meta.MetaImpl;
+import io.openliberty.mcp.internal.monitor.McpStatAttributes;
+import io.openliberty.mcp.internal.monitor.McpStatsMonitor;
 import io.openliberty.mcp.internal.requests.CancellationImpl;
 import io.openliberty.mcp.internal.requests.ExecutionRequestId;
 import io.openliberty.mcp.internal.requests.McpInitializeParams;
@@ -124,6 +127,7 @@ public class McpServlet extends HttpServlet {
             }).orElse(false);
 
             transport.init(sessionStore);
+            atEntry(transport);
 
             RequestMethod method = transport.getMcpRequest().getRequestMethod();
 
@@ -136,17 +140,22 @@ public class McpServlet extends HttpServlet {
             }
             callRequest(transport);
         } catch (JSONRPCException e) {
+            atExceptionReturn(e);
             transport.sendJsonRpcException(e);
         } catch (HttpResponseException e) {
+            atExceptionReturn(e);
             transport.sendHttpException(e);
         } catch (Exception e) {
+            atExceptionReturn(e);
             transport.sendError(e);
         }
+        atExit(transport);
     }
 
-    protected void callRequest(McpTransport transport)
+    public void callRequest(McpTransport transport)
                     throws JSONRPCException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, IOException {
         RequestMethod method = transport.getMcpRequest().getRequestMethod();
+
         switch (method) {
             case TOOLS_CALL -> callTool(transport);
             case TOOLS_LIST -> listTools(transport);
@@ -155,6 +164,74 @@ public class McpServlet extends HttpServlet {
             case PING -> ping(transport);
             case CANCELLED -> cancelRequest(transport);
             default -> throw new JSONRPCException(JSONRPCErrorCode.METHOD_NOT_FOUND, List.of(String.valueOf(method + " not found")));
+        }
+
+    }
+
+    public void atEntry(McpTransport transport) {
+        McpStatsMonitor monitor = McpStatsMonitor.getInstance();
+        if (monitor != null) {
+            McpStatsMonitor.getTl_mcpStatsBuilder().set(null);; //reset just in case
+
+            McpStatsMonitor.getTl_startNanos().set(System.nanoTime());
+            McpStatAttributes.Builder builder = McpStatAttributes.builder();
+
+            String method = transport.getMcpRequest().method();
+            builder.withMcpMethodName(method);
+            if (method.equals("tool/call")) {
+                McpToolCallParams params = transport.getParams(McpToolCallParams.class);
+                builder.withGenAiToolName(Optional.of(params.getName()));
+            }
+            builder.withJsonrpcProtocolVersion(Optional.of(transport.getMcpRequest().jsonrpc()));
+            builder.withMcpProtocolVersion(Optional.of(transport.getProtocolVersion().toString()));
+
+            String[] fullProtocal = transport.getReq().getProtocol().split("/");
+            builder.withNetworkProtocolName(Optional.of(fullProtocal[0]));
+            builder.withNetworkProtocolVersion(Optional.of(fullProtocal[1]));
+            builder.withNetworkTransport(Optional.of("tcp"));
+
+            McpStatsMonitor.getTl_mcpStatsBuilder().set(builder);
+        }
+
+    }
+
+    public void atExceptionReturn(Throwable t) {
+        McpStatsMonitor monitor = McpStatsMonitor.getInstance();
+        if (monitor != null) {
+            if (t instanceof Throwable) {
+                McpStatAttributes.Builder builder = McpStatsMonitor.getTl_mcpStatsBuilder().get();
+                if (builder != null) {
+                    builder.withErrorType(Optional.of(t.getCause().getMessage()));
+                }
+            } else if (t instanceof JSONRPCException) {
+                JSONRPCException j = (JSONRPCException) t;
+                McpStatAttributes.Builder builder = McpStatsMonitor.getTl_mcpStatsBuilder().get();
+                if (builder != null) {
+                    builder.withErrorType(Optional.of(j.getCause().getMessage()));
+                    builder.withRpcResponseStatusCode(Optional.of(String.valueOf(j.getErrorCode().getCode())));
+                }
+            }
+        }
+
+    }
+
+    public void atExit(McpTransport transport) {
+        McpStatsMonitor monitor = McpStatsMonitor.getInstance();
+        if (monitor != null) {
+            if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled()) {
+                Tr.debug(tc, "starting atSendResponseReturn probbe");
+            }
+
+            long elapsedNanos = System.nanoTime() - McpStatsMonitor.getTl_startNanos().get();
+            McpStatAttributes.Builder retrievedMcpStatAttributesBuilder = McpStatsMonitor.getTl_mcpStatsBuilder().get();
+
+            if (retrievedMcpStatAttributesBuilder == null) {
+                if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled()) {
+                    Tr.debug(tc, "Unable to retrieve McpStatAttributes. Unable to record time.");
+                }
+                return;
+            }
+            monitor.updateMcpStatDuration(retrievedMcpStatAttributesBuilder, Duration.ofNanos(elapsedNanos), null);
         }
 
     }

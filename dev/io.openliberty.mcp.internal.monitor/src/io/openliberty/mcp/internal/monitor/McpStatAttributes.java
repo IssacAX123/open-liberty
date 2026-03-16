@@ -232,10 +232,10 @@ public class McpStatAttributes {
                 /*
                  * Conditionally required as per HTTP Semantics Convention
                  */
-                private Optional<String> errorType = Optional.ofNullable(null);
-                private Optional<String> genAiPromptName = Optional.ofNullable(null);
-                private Optional<String> genAiToolName = Optional.ofNullable(null);
-                private Optional<String> rpcResponseStatusCode = Optional.ofNullable(null);
+                private Optional<String> errorType = Optional.empty();
+                private Optional<String> genAiPromptName = Optional.empty();
+                private Optional<String> genAiToolName = Optional.empty();
+                private Optional<String> rpcResponseStatusCode = Optional.empty();
 
                 /*
                  * Exception related fields are optional. We are unable to facilitate capturing
@@ -244,8 +244,15 @@ public class McpStatAttributes {
                  * catch. But we have no way of capturing application exception of
                  * Jaxrs/restfulws exceptions
                  */
-                private Optional<String> genAiOperationName, jsonrpcProtocolVersion, mcpProtocolVersion, networkProtocolName, networkProtocolVersion, networkTransport, mcpResourceUri = Optional.ofNullable(null);
 
+                private Optional<String> genAiOperationName = Optional.empty();
+                private Optional<String> jsonrpcProtocolVersion = Optional.empty();
+                private Optional<String> mcpProtocolVersion = Optional.empty();
+                private Optional<String> networkProtocolName = Optional.empty();
+                private Optional<String> networkProtocolVersion = Optional.empty();
+                private Optional<String> mcpResourceUri = Optional.empty();
+                private Optional<String> networkTransport = Optional.empty();
+  
                 /*
                  * Define a constructor with default protection so others do not call it directly and instead
                  * call the builder() method above.

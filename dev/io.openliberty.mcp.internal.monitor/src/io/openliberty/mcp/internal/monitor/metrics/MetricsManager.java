@@ -55,7 +55,14 @@ private static MetricsManager instance;
      * @param duration
      */
 	public void updateMcpToolDurationMetrics(McpStatAttributes mcpStatsAttribute , Duration duration) {
+		if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled()) {
+	        Tr.debug(tc, "Forwarding metrics to " + mcpMetricRuntimes.size() + " adapters");
+	    }
+
         for (McpMetricAdapter adapter : mcpMetricRuntimes) {
+        	if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled()) {
+	            Tr.debug(tc, "Adapter: " + adapter.getClass().getName());
+	        }
             adapter.updateMcpMetrics(mcpStatsAttribute, duration);
         }
 	}

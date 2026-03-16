@@ -39,7 +39,7 @@ Import-Package: \
 
 DynamicImport-Package: \
     io.openliberty.http.monitor,\
-    io.openliberty.http.monitor.metrics
+    io.openliberty.http.monitor.metrics,\
     io.openliberty.mcp.internal.monitor,\
     io.openliberty.mcp.internal.monitor.metrics
 
@@ -54,7 +54,10 @@ Export-Package: \
 	io.openliberty.microprofile.metrics50.helper,\
 	io.openliberty.smallrye.metrics.adapters,\
 	io.openliberty.smallrye.metrics.cdi.adapters,\
-	io.openliberty.microprofile.metrics50.http
+	io.openliberty.microprofile.metrics50.http,\
+	io.openliberty.microprofile.metrics50.mcp,\
+	io.openliberty.microprofile.metrics50.mcp.attributes
+	
 
 -dsannotations-inherit: true
 -dsannotations: \

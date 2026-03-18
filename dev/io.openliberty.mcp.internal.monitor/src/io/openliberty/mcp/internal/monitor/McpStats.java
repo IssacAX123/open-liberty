@@ -2,6 +2,9 @@ package io.openliberty.mcp.internal.monitor;
 
 import com.ibm.websphere.monitor.meters.StatisticsMeter;
 import com.ibm.websphere.monitor.meters.StatisticsReading;
+
+import io.openliberty.mcp.internal.monitoring.McpStatAttributes;
+
 import com.ibm.websphere.monitor.meters.Counter;
 import com.ibm.websphere.monitor.meters.Meter;
 

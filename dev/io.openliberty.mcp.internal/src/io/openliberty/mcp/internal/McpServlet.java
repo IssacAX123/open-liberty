@@ -40,8 +40,8 @@ import io.openliberty.mcp.internal.exceptions.jsonrpc.JSONRPCErrorCode;
 import io.openliberty.mcp.internal.exceptions.jsonrpc.JSONRPCException;
 import io.openliberty.mcp.internal.exceptions.jsonrpc.McpResponseException;
 import io.openliberty.mcp.internal.meta.MetaImpl;
-import io.openliberty.mcp.internal.monitor.McpStatAttributes;
-import io.openliberty.mcp.internal.monitor.McpStatsMonitor;
+import io.openliberty.mcp.internal.monitoring.McpStatAttributes;
+import io.openliberty.mcp.internal.monitoring.McpStatsMonitor;
 import io.openliberty.mcp.internal.requests.CancellationImpl;
 import io.openliberty.mcp.internal.requests.ExecutionRequestId;
 import io.openliberty.mcp.internal.requests.McpInitializeParams;
@@ -79,6 +79,7 @@ public class McpServlet extends HttpServlet {
     private static final long serialVersionUID = 1L;
     private static final TraceComponent tc = Tr.register(McpServlet.class);
     private static final ServiceCaller<McpConfiguration> mcpConfigService = new ServiceCaller<>(McpServlet.class, McpConfiguration.class);
+    private static final ServiceCaller<McpStatsMonitor> mcpMonitoringService = new ServiceCaller<>(McpServlet.class, McpStatsMonitor.class);
     private static final int PAGE_SIZE = 20;
 
     @Inject
@@ -169,11 +170,10 @@ public class McpServlet extends HttpServlet {
     }
 
     public void atEntry(McpTransport transport) {
-        McpStatsMonitor monitor = McpStatsMonitor.getInstance();
-        if (monitor != null) {
-            McpStatsMonitor.getTl_mcpStatsBuilder().set(null);; //reset just in case
+        mcpMonitoringService.call(monitor -> {
+            monitor.getTl_mcpStatsBuilder().set(null);; //reset just in case
 
-            McpStatsMonitor.getTl_startNanos().set(System.nanoTime());
+            monitor.getTl_startNanos().set(System.nanoTime());
             McpStatAttributes.Builder builder = McpStatAttributes.builder();
 
             String method = transport.getMcpRequest().method();
@@ -190,40 +190,36 @@ public class McpServlet extends HttpServlet {
             builder.withNetworkProtocolVersion(Optional.of(fullProtocal[1]));
             builder.withNetworkTransport(Optional.of("tcp"));
 
-            McpStatsMonitor.getTl_mcpStatsBuilder().set(builder);
-        }
-
+            monitor.getTl_mcpStatsBuilder().set(builder);
+        });
     }
 
     public void atExceptionReturn(Throwable t) {
-        McpStatsMonitor monitor = McpStatsMonitor.getInstance();
-        if (monitor != null) {
+        mcpMonitoringService.call(monitor -> {
             if (t instanceof Throwable) {
-                McpStatAttributes.Builder builder = McpStatsMonitor.getTl_mcpStatsBuilder().get();
+                McpStatAttributes.Builder builder = monitor.getTl_mcpStatsBuilder().get();
                 if (builder != null) {
                     builder.withErrorType(Optional.of(t.getCause().getMessage()));
                 }
             } else if (t instanceof JSONRPCException) {
                 JSONRPCException j = (JSONRPCException) t;
-                McpStatAttributes.Builder builder = McpStatsMonitor.getTl_mcpStatsBuilder().get();
+                McpStatAttributes.Builder builder = monitor.getTl_mcpStatsBuilder().get();
                 if (builder != null) {
                     builder.withErrorType(Optional.of(j.getCause().getMessage()));
                     builder.withRpcResponseStatusCode(Optional.of(String.valueOf(j.getErrorCode().getCode())));
                 }
             }
-        }
-
+        });
     }
 
     public void atExit(McpTransport transport) {
-        McpStatsMonitor monitor = McpStatsMonitor.getInstance();
-        if (monitor != null) {
+        mcpMonitoringService.call(monitor -> {
             if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled()) {
                 Tr.debug(tc, "starting atSendResponseReturn probbe");
             }
 
-            long elapsedNanos = System.nanoTime() - McpStatsMonitor.getTl_startNanos().get();
-            McpStatAttributes.Builder retrievedMcpStatAttributesBuilder = McpStatsMonitor.getTl_mcpStatsBuilder().get();
+            long elapsedNanos = System.nanoTime() - monitor.getTl_startNanos().get();
+            McpStatAttributes.Builder retrievedMcpStatAttributesBuilder = monitor.getTl_mcpStatsBuilder().get();
 
             if (retrievedMcpStatAttributesBuilder == null) {
                 if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled()) {
@@ -232,7 +228,7 @@ public class McpServlet extends HttpServlet {
                 return;
             }
             monitor.updateMcpStatDuration(retrievedMcpStatAttributesBuilder, Duration.ofNanos(elapsedNanos), null);
-        }
+        });
 
     }
 

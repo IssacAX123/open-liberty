@@ -24,16 +24,12 @@ WS-TraceGroup: MCP
 
 Export-Package: \
 	io.openliberty.mcp.internal.*;thread-context=true;version=${bVersion},\
+	io.openliberty.mcp.internal.monitoring;thread-context=true;version=${bVersion}
 	
 
 
 Import-Package: \
-	!io.openliberty.mcp.internal.monitor.*,\
     *  
-
-DynamicImport-Package: \
-  io.openliberty.mcp.internal.monitor.*
-  
 Include-Resource: \
         OSGI-INF=resources/OSGI-INF
 
@@ -61,10 +57,7 @@ Bundle-Localization: \
 	io.openliberty.jakarta.jsonp.2.1;version=latest,\
 	com.ibm.ws.cdi.interfaces.jakarta;version=latest,\
 	com.ibm.ws.transport.http;version=latest,\
-	com.ibm.ws.kernel.service;version=latest,\
-	io.openliberty.mcp.internal.monitor,\
-	com.ibm.ws.monitor;version=latest
-	
+	com.ibm.ws.kernel.service;version=latest
 
 -testpath: \
 	org.hamcrest:hamcrest-all;version=1.3,\

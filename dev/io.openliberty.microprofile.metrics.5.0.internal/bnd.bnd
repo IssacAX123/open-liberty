@@ -26,9 +26,7 @@ IBM-Web-Extension-Processing-Disabled: true
 
 Import-Package: \
 	!io.openliberty.http.monitor,\
-	!io.openliberty.http.monitor.metrics,\
-	!io.openliberty.mcp.internal.monitor,\
-	!io.openliberty.mcp.internal.monitor.metrics,\
+	!io.openliberty.http.monitor.metrics
 	jakarta.enterprise.inject; version="[4.0,5)",\
 	jakarta.enterprise.util; version="[4.0,5)",\
 	jakarta.annotation; version="[2.1,3)",\
@@ -39,9 +37,7 @@ Import-Package: \
 
 DynamicImport-Package: \
     io.openliberty.http.monitor,\
-    io.openliberty.http.monitor.metrics,\
-    io.openliberty.mcp.internal.monitor,\
-    io.openliberty.mcp.internal.monitor.metrics
+    io.openliberty.http.monitor.metrics
 
 Private-Package: \
 	com.ibm.ws.microprofile.metrics.resources,\
@@ -54,9 +50,7 @@ Export-Package: \
 	io.openliberty.microprofile.metrics50.helper,\
 	io.openliberty.smallrye.metrics.adapters,\
 	io.openliberty.smallrye.metrics.cdi.adapters,\
-	io.openliberty.microprofile.metrics50.http,\
-	io.openliberty.microprofile.metrics50.mcp,\
-	io.openliberty.microprofile.metrics50.mcp.attributes
+	io.openliberty.microprofile.metrics50.http
 	
 
 -dsannotations-inherit: true
@@ -65,8 +59,7 @@ Export-Package: \
 	io.openliberty.microprofile.metrics50.SharedMetricRegistries,\
 	io.openliberty.microprofile.metrics50.internal.SmallryeMetricsCDIMetadata,\
 	io.openliberty.microprofile.metrics50.internal.ApplicationListener50,\
-	io.openliberty.microprofile.metrics50.http.MPMetricsHTTPMetricsAdapterImpl,\
-	io.openliberty.microprofile.metrics50.mcp.MPMetricsMcpMetricsAdapterImpl
+	io.openliberty.microprofile.metrics50.http.MPMetricsHTTPMetricsAdapterImpl
 
 WS-TraceGroup: METRICS
 
@@ -98,7 +91,4 @@ WS-TraceGroup: METRICS
 	com.ibm.ws.org.osgi.annotation.versioning;version=latest,\
 	com.ibm.ws.microprofile.metrics.common;version=latest,\
 	com.ibm.ws.microprofile.metrics;version=latest,\
-	io.openliberty.http.monitor,\
-	io.openliberty.mcp.internal.monitor,\
-	io.openliberty.io.opentelemetry,\
-	io.openliberty.io.opentelemetry.2.0
+	io.openliberty.http.monitor

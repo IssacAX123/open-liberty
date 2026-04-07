@@ -11,4 +11,4 @@
  *
  */
 @org.osgi.annotation.versioning.Version("1.0")
-package io.openliberty.mcp.internal.mptelemtry;
+package io.openliberty.mcp.internal.mptelemetry;

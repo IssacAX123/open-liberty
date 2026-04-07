@@ -20,7 +20,7 @@ import static io.opentelemetry.semconv.incubating.McpIncubatingAttributes.MCP_RE
 import static io.opentelemetry.semconv.incubating.NetworkIncubatingAttributes.NETWORK_PROTOCOL_NAME;
 import static io.opentelemetry.semconv.incubating.NetworkIncubatingAttributes.NETWORK_PROTOCOL_VERSION;
 import static io.opentelemetry.semconv.incubating.NetworkIncubatingAttributes.NETWORK_TRANSPORT;
-//import static io.opentelemetry.semconv.incubating.RpcIncubatingAttributes.RPC_RESPONSE_STATUS_CODE;
+import static io.opentelemetry.semconv.incubating.RpcIncubatingAttributes.RPC_RESPONSE_STATUS_CODE;
 
 import java.time.Duration;
 import java.util.Arrays;
@@ -153,10 +153,10 @@ public class MPTelemetryMcpMetricsAdapterImpl implements McpMetricAdapter, Appli
             attributesBuilder.put(GEN_AI_TOOL_NAME, genAiToolName);
         }
 
-//        String rpcResponseStatusCode = mcpStatAttributes.getRpcResponseStatusCode();
-//        if (rpcResponseStatusCode != null) {
-//            attributesBuilder.put(RPC_RESPONSE_STATUS_CODE, rpcResponseStatusCode);
-//        }
+        String rpcResponseStatusCode = mcpStatAttributes.getRpcResponseStatusCode();
+        if (rpcResponseStatusCode != null) {
+            attributesBuilder.put(RPC_RESPONSE_STATUS_CODE, rpcResponseStatusCode);
+        }
 
         String genAiOperationName = mcpStatAttributes.getGenAiOperationName();
         if (genAiOperationName != null) {

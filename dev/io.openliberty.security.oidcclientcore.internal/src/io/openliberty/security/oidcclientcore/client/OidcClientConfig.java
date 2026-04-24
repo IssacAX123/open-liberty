@@ -65,4 +65,12 @@ public interface OidcClientConfig {
 
     int getTokenMinValidity();
 
+    default Boolean isProtectedResourceMetadataEnabled() {
+        return false;
+    }
+
+    default String getAuthFilterRef() {
+        return null;
+    }
+
 }

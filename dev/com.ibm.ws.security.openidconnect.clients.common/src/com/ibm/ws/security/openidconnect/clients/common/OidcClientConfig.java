@@ -93,4 +93,8 @@ public interface OidcClientConfig extends ConvergedClientConfig {
 
     public long getAccessTokenCacheTimeout();
 
+    public Boolean isProtectedResourceMetadataEnabled();
+
+    public String getAuthFilterRef();
+
 }

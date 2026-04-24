@@ -59,13 +59,13 @@ public class OpenidConnectClient extends ConfigElement {
     private String keyManagementKeyAlias;
     private Boolean mapIdentityToRegistryUser;
     private Boolean nonceEnabled;
+    private Boolean protectedResourceMetadataEnabled;
     private String reAuthnCushion;
     private Boolean reAuthnOnAccessTokenExpire;
     private String realmIdentifier;
     private String realmName;
     private String redirectJunctionPath;
     private String redirectToRPHostAndPort;
-    private String resource;
     private String responseType;
     private String scope;
     private String signatureAlgorithm;
@@ -627,6 +627,21 @@ public class OpenidConnectClient extends ConfigElement {
     }
 
     /**
+     * @return the protectedResourceMetadataEnabled
+     */
+    public Boolean getProtectedResourceMetadataEnabled() {
+        return protectedResourceMetadataEnabled;
+    }
+
+    /**
+     * @param protectedResourceMetadataEnabled the protectedResourceMetadataEnabled to set
+     */
+    @XmlAttribute(name = "protectedResourceMetadataEnabled")
+    public void setProtectedResourceMetadataEnabled(Boolean protectedResourceMetadataEnabled) {
+        this.protectedResourceMetadataEnabled = protectedResourceMetadataEnabled;
+    }
+
+    /**
      * @return the reAuthnOnAccessTokenExpire
      */
     public Boolean getReAuthnOnAccessTokenExpire() {
@@ -699,21 +714,6 @@ public class OpenidConnectClient extends ConfigElement {
     @XmlAttribute(name = "redirectToRPHostAndPort")
     public void setRedirectToRPHostAndPort(String redirectToRPHostAndPort) {
         this.redirectToRPHostAndPort = redirectToRPHostAndPort;
-    }
-
-    /**
-     * @return the resource
-     */
-    public String getResource() {
-        return resource;
-    }
-
-    /**
-     * @param resource the resource to set
-     */
-    @XmlAttribute(name = "resource")
-    public void setResource(String resource) {
-        this.resource = resource;
     }
 
     /**
@@ -1114,9 +1114,6 @@ public class OpenidConnectClient extends ConfigElement {
         }
         if (redirectToRPHostAndPort != null) {
             sb.append("redirectToRPHostAndPort=\"").append(redirectToRPHostAndPort).append("\" ");
-        }
-        if (resource != null) {
-            sb.append("resource=\"").append(resource).append("\" ");
         }
         if (responseType != null) {
             sb.append("responseType=\"").append(responseType).append("\" ");

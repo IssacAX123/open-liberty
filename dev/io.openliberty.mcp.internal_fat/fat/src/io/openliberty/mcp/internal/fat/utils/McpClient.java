@@ -422,4 +422,43 @@ public class McpClient extends ExternalResource {
         return combinedResponse.toString();
     }
 
+    public RawResponse callMcpRaw(String jsonRequestBody, int expectedCode) throws Exception {
+        HttpRequest request = new HttpRequest(server, getMcpPath()).expectCode(expectedCode);
+        String body = setupAndRunRequest(request, jsonRequestBody);
+        return new RawResponse(request.getResponseCode(), request.getResponseHeader("WWW-Authenticate"), body);
+    }
+
+    public RawResponse getRawConnection(String path, int expectedCode) throws Exception {
+        HttpRequest request = new HttpRequest(server, path).method("GET").expectCode(expectedCode);
+        String body = request.run(String.class);
+        return new RawResponse(request.getResponseCode(), request.getResponseHeader("WWW-Authenticate"), body);
+    }
+
+    public String getRaw(String path) throws Exception {
+        return new HttpRequest(server, path).method("GET").run(String.class);
+    }
+
+    public static class RawResponse {
+        private final int responseCode;
+        private final String wwwAuthenticateHeader;
+        private final String body;
+
+        public RawResponse(int responseCode, String wwwAuthenticateHeader, String body) {
+            this.responseCode = responseCode;
+            this.wwwAuthenticateHeader = wwwAuthenticateHeader;
+            this.body = body;
+        }
+
+        public int getResponseCode() {
+            return responseCode;
+        }
+
+        public String getWwwAuthenticateHeader() {
+            return wwwAuthenticateHeader;
+        }
+
+        public String getBody() {
+            return body;
+        }
+    }
 }

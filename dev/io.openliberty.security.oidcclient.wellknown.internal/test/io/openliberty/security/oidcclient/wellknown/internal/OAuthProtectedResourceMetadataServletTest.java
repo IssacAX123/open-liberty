@@ -60,8 +60,88 @@ public class OAuthProtectedResourceMetadataServletTest {
         servlet.doGet(request, response);
 
         writer.flush();
-        assertTrue(body.toString().contains("\"resource\":\"https://example.com/inventory/api\""));
-        assertTrue(body.toString().contains("\"authorization_servers\":[\"https://issuer.example.com\"]"));
+        String jsonOutput = body.toString();
+        // Verify resource field contains absolute URI per RFC 9728
+        assertTrue("Resource field must be absolute URI", jsonOutput.contains("\"resource\":\"https://example.com/inventory/api\""));
+        assertTrue(jsonOutput.contains("\"authorization_servers\":[\"https://issuer.example.com\"]"));
+    }
+
+    @Test
+    public void metadataResourceFieldIsAbsoluteUri() throws Exception {
+        // Test that resolveMetadata builds absolute URI from request context
+        TestServletWithResolver servlet = new TestServletWithResolver();
+
+        HttpServletRequest request = context.mock(HttpServletRequest.class, "absoluteUriRequest");
+        HttpServletResponse response = context.mock(HttpServletResponse.class, "absoluteUriResponse");
+        StringWriter body = new StringWriter();
+        PrintWriter writer = new PrintWriter(body);
+
+        context.checking(new Expectations() {
+            {
+                oneOf(request).getPathInfo();
+                will(returnValue("/api/resource"));
+
+                // Mock request context for building absolute URI
+                oneOf(request).getScheme();
+                will(returnValue("https"));
+                oneOf(request).getServerName();
+                will(returnValue("resource.example.com"));
+                oneOf(request).getServerPort();
+                will(returnValue(443));
+
+                oneOf(response).setContentType("application/json");
+                oneOf(response).setCharacterEncoding("UTF-8");
+                oneOf(response).getWriter();
+                will(returnValue(writer));
+            }
+        });
+
+        servlet.doGet(request, response);
+
+        writer.flush();
+        String jsonOutput = body.toString();
+        // Verify the resource field is an absolute URI built from request context
+        assertTrue("Resource must be absolute URI with scheme, host, and path",
+                   jsonOutput.contains("\"resource\":\"https://resource.example.com/api/resource\""));
+    }
+
+    @Test
+    public void metadataResourceFieldIncludesNonStandardPort() throws Exception {
+        // Test that non-standard ports are included in absolute URI
+        TestServletWithResolver servlet = new TestServletWithResolver();
+
+        HttpServletRequest request = context.mock(HttpServletRequest.class, "portRequest");
+        HttpServletResponse response = context.mock(HttpServletResponse.class, "portResponse");
+        StringWriter body = new StringWriter();
+        PrintWriter writer = new PrintWriter(body);
+
+        context.checking(new Expectations() {
+            {
+                oneOf(request).getPathInfo();
+                will(returnValue("/api/resource"));
+
+                // Mock request with non-standard port
+                oneOf(request).getScheme();
+                will(returnValue("https"));
+                oneOf(request).getServerName();
+                will(returnValue("resource.example.com"));
+                oneOf(request).getServerPort();
+                will(returnValue(8443));
+
+                oneOf(response).setContentType("application/json");
+                oneOf(response).setCharacterEncoding("UTF-8");
+                oneOf(response).getWriter();
+                will(returnValue(writer));
+            }
+        });
+
+        servlet.doGet(request, response);
+
+        writer.flush();
+        String jsonOutput = body.toString();
+        // Verify non-standard port is included in absolute URI
+        assertTrue("Resource must include non-standard port",
+                   jsonOutput.contains("\"resource\":\"https://resource.example.com:8443/api/resource\""));
     }
 
     @Test
@@ -130,8 +210,39 @@ public class OAuthProtectedResourceMetadataServletTest {
         }
 
         @Override
-        protected ProtectedResourceMetadata resolveMetadata(String protectedResourcePath) {
+        protected ProtectedResourceMetadata resolveMetadata(HttpServletRequest request, String protectedResourcePath) {
             return metadataByPath.get(protectedResourcePath);
+        }
+    }
+
+    /**
+     * Test servlet that builds metadata with absolute URI from request context
+     */
+    private static class TestServletWithResolver extends OAuthProtectedResourceMetadataServlet {
+        @Override
+        protected ProtectedResourceMetadata resolveMetadata(HttpServletRequest request, String protectedResourcePath) {
+            // Build absolute URI from request context
+            String scheme = request.getScheme();
+            String host = request.getServerName();
+            int port = request.getServerPort();
+            
+            StringBuilder uri = new StringBuilder();
+            uri.append(scheme).append("://").append(host);
+            
+            // Only include port if it's not the default for the scheme
+            if ((scheme.equals("http") && port != 80) || (scheme.equals("https") && port != 443)) {
+                uri.append(":").append(port);
+            }
+            
+            uri.append(protectedResourcePath);
+            String absoluteResourceUri = uri.toString();
+
+            return ProtectedResourceMetadata.builder()
+                    .resource(absoluteResourceUri)
+                    .protectedResourcePath(protectedResourcePath)
+                    .enabled(true)
+                    .authorizationServer("https://issuer.example.com")
+                    .build();
         }
     }
 }

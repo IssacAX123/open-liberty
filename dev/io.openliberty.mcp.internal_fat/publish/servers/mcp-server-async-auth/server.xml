@@ -6,10 +6,11 @@
     <feature>mcpServer-1.0</feature>
     <feature>concurrent-3.0</feature>
     <feature>appSecurity-5.0</feature>
+    <feature>openidConnectClient-1.0</feature>
   </featureManager>
 
   <include location="../fatTestPorts.xml" />
-    
+
 	<basicRegistry id="basic" realm="BasicRealm">
 	     <user name="testuser" password="testpassword"/>
 	     <user name="BobTheAdmin" password="testpassword"/>
@@ -18,15 +19,41 @@
 	     <group name="Admins">
 	         <member name="BobTheAdmin"/>
 	     </group>
-	     
+
 	     <group name="TestUsers">
 	         <member name="testuser"/>
 	     </group>
-	     
+
 	     <group name="AllUsers">
 	         <member name="testuser"/>
 	         <member name="BobTheAdmin"/>
 	     </group>
 	</basicRegistry>
-	
+
+  <openidConnectClient id="mcpProtectedResourceMetadataClient"
+                       clientId="mcp-client"
+                       clientSecret="replace-me"
+                       discoveryEndpointUrl="https://replace-me/.well-known/openid-configuration"
+                       authFilterRef="mcpProtectedResourceAuthFilter"
+                       protectedResourceMetadataEnabled="true" />
+
+  <openidConnectClient id="mcpProtectedResourceMetadataDisabledClient"
+                       clientId="mcp-client-disabled"
+                       clientSecret="replace-me"
+                       discoveryEndpointUrl="https://replace-me/.well-known/openid-configuration"
+                       authFilterRef="mcpProtectedResourceMetadataDisabledAuthFilter"
+                       protectedResourceMetadataEnabled="false" />
+
+  <authFilter id="mcpProtectedResourceAuthFilter">
+      <requestUrl id="mcpProtectedResourceRequestUrl"
+                  urlPattern="/adminsRoleTools/mcp"
+                  matchType="contains" />
+  </authFilter>
+
+  <authFilter id="mcpProtectedResourceMetadataDisabledAuthFilter">
+      <requestUrl id="mcpProtectedResourceMetadataDisabledRequestUrl"
+                  urlPattern="/disabledMetadataTest/mcp"
+                  matchType="contains" />
+  </authFilter>
+
 </server>

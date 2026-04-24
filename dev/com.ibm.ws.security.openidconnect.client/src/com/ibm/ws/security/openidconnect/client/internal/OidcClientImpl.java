@@ -313,7 +313,7 @@ public class OidcClientImpl implements OidcClient, UnprotectedResourceService {
         req.setAttribute(ClientConstants.ATTRIB_OIDC_CLIENT_REQUEST, oidcClientRequest);
         ProviderAuthenticationResult result = authenticate(req, res, provider, referrerURLCookieHandler, beforeSso, oidcClientConfig, oidcClientRequest);
         // handle the result when it's OAuthChallengeReply
-        handleOauthChallenge(res, result);
+        handleOauthChallenge(req, res, result);
         if (tc.isDebugEnabled()) {
             Tr.debug(tc, "OIDC _SSO RP PROCESS HAS ENDED.");
         }
@@ -739,7 +739,7 @@ public class OidcClientImpl implements OidcClient, UnprotectedResourceService {
         return null;
     }
 
-    private boolean isConfigUsableByAuthFilter(OidcClientConfig oidcClientConfig, HttpServletRequest req) {
+    public boolean isConfigUsableByAuthFilter(OidcClientConfig oidcClientConfig, HttpServletRequest req) {
         boolean result = false;
         String authFilterId = oidcClientConfig.getAuthFilterId();
 
@@ -755,6 +755,32 @@ public class OidcClientImpl implements OidcClient, UnprotectedResourceService {
         }
 
         return result;
+    }
+
+    /**
+     * Find an OIDC client config that matches the request via authFilter and has protected resource metadata enabled.
+     * This is used for both WWW-Authenticate challenge augmentation and well-known metadata resolution.
+     *
+     * @param req The HTTP servlet request
+     * @return The matching OidcClientConfig with metadata enabled, or null if none found
+     */
+    public OidcClientConfig findConfigForProtectedResourceMetadata(HttpServletRequest req) {
+        Iterator<OidcClientConfig> oidcClientConfigs = oidcClientConfigRef.getServices();
+
+        while (oidcClientConfigs.hasNext()) {
+            OidcClientConfig oidcClientConfig = oidcClientConfigs.next();
+
+            if (oidcClientConfig.isValidConfig()) {
+                Boolean metadataEnabled = oidcClientConfig.isProtectedResourceMetadataEnabled();
+                if (metadataEnabled != null && metadataEnabled.booleanValue()) {
+                    if (isConfigUsableByAuthFilter(oidcClientConfig, req)) {
+                        return oidcClientConfig;
+                    }
+                }
+            }
+        }
+
+        return null;
     }
 
     /** {@inheritDoc} */
@@ -1035,7 +1061,7 @@ public class OidcClientImpl implements OidcClient, UnprotectedResourceService {
      * @param response
      * @param result
      */
-    void handleOauthChallenge(HttpServletResponse rsp, ProviderAuthenticationResult oidcResult) {
+    void handleOauthChallenge(HttpServletRequest req, HttpServletResponse rsp, ProviderAuthenticationResult oidcResult) {
         if (oidcResult.getStatus() == AuthResult.CONTINUE || oidcResult.getStatus() == AuthResult.REDIRECT_TO_PROVIDER) {
             // do not handle these statuses
             return;
@@ -1052,6 +1078,8 @@ public class OidcClientImpl implements OidcClient, UnprotectedResourceService {
         }
         if (errorDescription != null) {
             try {
+                // Augment WWW-Authenticate with resource_metadata parameter if applicable
+                augmentWWWAuthenticateWithResourceMetadata(req, rsp);
                 OAuth20ProviderUtils.handleOAuthChallenge(rsp, oidcResult, errorDescription);
             } catch (IOException ioe) {
                 // TODO error handling further
@@ -1062,6 +1090,69 @@ public class OidcClientImpl implements OidcClient, UnprotectedResourceService {
             }
 
         }
+    }
+
+    /**
+     * Augment the WWW-Authenticate header with the resource_metadata parameter per RFC 9728
+     * if a matching OIDC client config with metadata enabled can be found.
+     */
+    private void augmentWWWAuthenticateWithResourceMetadata(HttpServletRequest req, HttpServletResponse rsp) {
+        OidcClientConfig config = findConfigForProtectedResourceMetadata(req);
+        if (config == null) {
+            return;
+        }
+
+        String protectedResourcePath = req.getRequestURI();
+        if (protectedResourcePath == null || protectedResourcePath.isEmpty()) {
+            return;
+        }
+
+        io.openliberty.security.oidcclientcore.config.ProtectedResourceMetadataResolver resolver =
+            new io.openliberty.security.oidcclientcore.config.ProtectedResourceMetadataResolver();
+        String wellKnownPath = resolver.toWellKnownPath(protectedResourcePath);
+
+        // Build absolute URI for resource_metadata per RFC 9728
+        String absoluteResourceMetadataUri = buildAbsoluteUri(req, wellKnownPath);
+
+        // Build the augmented WWW-Authenticate header
+        String existingHeader = rsp.getHeader("WWW-Authenticate");
+        String augmentedHeader;
+        if (existingHeader != null && !existingHeader.isEmpty()) {
+            // Only augment Bearer challenges, skip other auth schemes like Basic
+            if (!existingHeader.trim().startsWith("Bearer")) {
+                return;
+            }
+            // Skip if resource_metadata already exists
+            if (existingHeader.contains("resource_metadata=")) {
+                return;
+            }
+            // Append resource_metadata parameter to existing Bearer challenge
+            augmentedHeader = existingHeader + ", resource_metadata=\"" + absoluteResourceMetadataUri + "\"";
+        } else {
+            // Create new Bearer challenge with resource_metadata
+            augmentedHeader = "Bearer realm=\"oauth\", resource_metadata=\"" + absoluteResourceMetadataUri + "\"";
+        }
+        rsp.setHeader("WWW-Authenticate", augmentedHeader);
+    }
+
+    /**
+     * Build an absolute URI from the request's scheme, host, port, and path.
+     */
+    private String buildAbsoluteUri(HttpServletRequest request, String path) {
+        String scheme = request.getScheme();
+        String host = request.getServerName();
+        int port = request.getServerPort();
+        
+        StringBuilder uri = new StringBuilder();
+        uri.append(scheme).append("://").append(host);
+        
+        // Only include port if it's not the default for the scheme
+        if ((scheme.equals("http") && port != 80) || (scheme.equals("https") && port != 443)) {
+            uri.append(":").append(port);
+        }
+        
+        uri.append(path);
+        return uri.toString();
     }
 
     //@Override

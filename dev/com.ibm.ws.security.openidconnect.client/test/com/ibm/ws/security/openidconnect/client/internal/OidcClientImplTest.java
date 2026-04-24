@@ -587,4 +587,135 @@ public class OidcClientImplTest {
             }
         });
     }
+
+    @Test
+    public void testAugmentWWWAuthenticateWithResourceMetadata_augmentExistingBearerChallenge() {
+        String methodName = "testAugmentWWWAuthenticateWithResourceMetadata_augmentExistingBearerChallenge";
+        final OidcClientImpl oidcClient = new OidcClientImpl();
+        try {
+            mockAugmentMetadataBaseExpectations("Bearer realm=\"oauth\"");
+
+            mock.checking(new Expectations() {
+                {
+                    allowing(resp).setHeader("WWW-Authenticate",
+                            "Bearer realm=\"oauth\", resource_metadata=\"https://example.com/.well-known/oauth-protected-resource/api/resource\"");
+                }
+            });
+
+            activateAugmentMetadataOidcClient(oidcClient);
+            invokeAugmentWWWAuthenticateWithResourceMetadata(oidcClient);
+
+        } catch (Throwable t) {
+            outputMgr.failWithThrowable(methodName, t);
+        }
+    }
+
+    @Test
+    public void testAugmentWWWAuthenticateWithResourceMetadata_skipBasicChallenge() {
+        String methodName = "testAugmentWWWAuthenticateWithResourceMetadata_skipBasicChallenge";
+        final OidcClientImpl oidcClient = new OidcClientImpl();
+        try {
+            mockAugmentMetadataBaseExpectations("Basic realm=\"test\"");
+
+            mock.checking(new Expectations() {
+                {
+                    never(resp).setHeader(with(any(String.class)), with(any(String.class)));
+                }
+            });
+
+            activateAugmentMetadataOidcClient(oidcClient);
+            invokeAugmentWWWAuthenticateWithResourceMetadata(oidcClient);
+
+        } catch (Throwable t) {
+            outputMgr.failWithThrowable(methodName, t);
+        }
+    }
+
+    @Test
+    public void testAugmentWWWAuthenticateWithResourceMetadata_skipWhenResourceMetadataExists() {
+        String methodName = "testAugmentWWWAuthenticateWithResourceMetadata_skipWhenResourceMetadataExists";
+        final OidcClientImpl oidcClient = new OidcClientImpl();
+        try {
+            mockAugmentMetadataBaseExpectations("Bearer realm=\"oauth\", resource_metadata=\"https://example.com/.well-known/oauth-protected-resource/api/resource\"");
+
+            mock.checking(new Expectations() {
+                {
+                    never(resp).setHeader(with(any(String.class)), with(any(String.class)));
+                }
+            });
+
+            activateAugmentMetadataOidcClient(oidcClient);
+            invokeAugmentWWWAuthenticateWithResourceMetadata(oidcClient);
+
+        } catch (Throwable t) {
+            outputMgr.failWithThrowable(methodName, t);
+        }
+    }
+
+    @Test
+    public void testAugmentWWWAuthenticateWithResourceMetadata_createBearerChallengeWhenHeaderAbsent() {
+        String methodName = "testAugmentWWWAuthenticateWithResourceMetadata_createBearerChallengeWhenHeaderAbsent";
+        final OidcClientImpl oidcClient = new OidcClientImpl();
+        try {
+            mockAugmentMetadataBaseExpectations(null);
+
+            mock.checking(new Expectations() {
+                {
+                    allowing(resp).setHeader("WWW-Authenticate",
+                            "Bearer realm=\"oauth\", resource_metadata=\"https://example.com/.well-known/oauth-protected-resource/api/resource\"");
+                }
+            });
+
+            activateAugmentMetadataOidcClient(oidcClient);
+            invokeAugmentWWWAuthenticateWithResourceMetadata(oidcClient);
+
+        } catch (Throwable t) {
+            outputMgr.failWithThrowable(methodName, t);
+        }
+    }
+
+    private void mockAugmentMetadataBaseExpectations(final String existingHeader) {
+        mock.checking(new Expectations() {
+            {
+                allowing(oidcClientConfigRef).getServices();
+                will(returnValue(new ArrayList<OidcClientConfig>() {
+                    private static final long serialVersionUID = 1L;
+                    {
+                        add(oidcClientConfig);
+                    }
+                }.iterator()));
+                allowing(oidcClientConfig).isValidConfig();
+                will(returnValue(true));
+                allowing(oidcClientConfig).isProtectedResourceMetadataEnabled();
+                will(returnValue(true));
+                allowing(oidcClientConfig).getAuthFilterId();
+                will(returnValue(authFilterId));
+                allowing(authFilterServiceRef).getService(authFilterId);
+                will(returnValue(filter1));
+                allowing(filter1).isAccepted(req);
+                will(returnValue(true));
+                allowing(req).getRequestURI();
+                will(returnValue("/api/resource"));
+                allowing(req).getScheme();
+                will(returnValue("https"));
+                allowing(req).getServerName();
+                will(returnValue("example.com"));
+                allowing(req).getServerPort();
+                will(returnValue(443));
+                allowing(resp).getHeader("WWW-Authenticate");
+                will(returnValue(existingHeader));
+            }
+        });
+    }
+
+    private void activateAugmentMetadataOidcClient(OidcClientImpl oidcClient) {
+        createOidcClientConfigExpectations(oidcClientConfigServiceRef, MY_OIDC_CLIENT, oidcClientConfig, authFilterId, false);
+        oidcClient.activate(cc);
+    }
+
+    private void invokeAugmentWWWAuthenticateWithResourceMetadata(OidcClientImpl oidcClient) throws Exception {
+        java.lang.reflect.Method method = OidcClientImpl.class.getDeclaredMethod("augmentWWWAuthenticateWithResourceMetadata", javax.servlet.http.HttpServletRequest.class, HttpServletResponse.class);
+        method.setAccessible(true);
+        method.invoke(oidcClient, req, resp);
+    }
 }

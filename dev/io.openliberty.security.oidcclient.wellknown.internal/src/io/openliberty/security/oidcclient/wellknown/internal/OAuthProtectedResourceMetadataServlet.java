@@ -27,7 +27,7 @@ public class OAuthProtectedResourceMetadataServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
         String protectedResourcePath = toProtectedResourcePath(request.getPathInfo());
-        ProtectedResourceMetadata metadata = resolveMetadata(protectedResourcePath);
+        ProtectedResourceMetadata metadata = resolveMetadata(request, protectedResourcePath);
 
         if (metadata == null || !metadata.isEnabled()) {
             response.sendError(HttpServletResponse.SC_NOT_FOUND);
@@ -49,7 +49,7 @@ public class OAuthProtectedResourceMetadataServlet extends HttpServlet {
         return "/" + pathInfo;
     }
 
-    protected ProtectedResourceMetadata resolveMetadata(String protectedResourcePath) {
+    protected ProtectedResourceMetadata resolveMetadata(HttpServletRequest request, String protectedResourcePath) {
         return null;
     }
 }

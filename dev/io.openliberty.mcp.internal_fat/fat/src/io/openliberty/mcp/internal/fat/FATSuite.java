@@ -41,6 +41,7 @@ import io.openliberty.mcp.internal.fat.security.NoClassAnnotationTests;
 import io.openliberty.mcp.internal.fat.security.NoClassAnnotationTestsStateless;
 import io.openliberty.mcp.internal.fat.security.PermitAllTests;
 import io.openliberty.mcp.internal.fat.security.PermitAllTestsStateless;
+import io.openliberty.mcp.internal.fat.security.OAuthProtectedResourceMetadataTest;
 import io.openliberty.mcp.internal.fat.statelessMode.StatefulModeTest;
 import io.openliberty.mcp.internal.fat.statelessMode.StatelessModeTest;
 import io.openliberty.mcp.internal.fat.tool.AsyncToolCancellationTest;
@@ -116,6 +117,7 @@ import io.openliberty.mcp.internal.fat.tool.ToolTest;
                 DenyAllTestsStateless.class,
                 NoClassAnnotationTestsStateless.class,
                 AdminsRoleAllowedTestsStateless.class,
+                OAuthProtectedResourceMetadataTest.class,
                 // Conformance Tests
                 ConformanceTests.class
 

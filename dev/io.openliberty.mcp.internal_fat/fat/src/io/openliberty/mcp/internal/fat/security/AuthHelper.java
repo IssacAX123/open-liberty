@@ -20,6 +20,8 @@ import io.openliberty.mcp.internal.fat.utils.McpClient;
  */
 public class AuthHelper {
 
+    private static final String DEFAULT_DISABLED_METADATA_PATH = "/disabledMetadataTest";
+
     // User Names
     private static final String ADMIN = "BobTheAdmin";
 
@@ -242,6 +244,35 @@ public class AuthHelper {
         // - the calling method of that method, up until the nesting level
 
         String methodName = Thread.currentThread().getStackTrace()[STACK_NESTING_LEVEL].getMethodName();
+        return buildMCPCallRequest(transfromCurrentMethodName(methodName));
+    }
+
+    public static String buildUnauthorizedEchoRequest() {
+        return buildMCPCallRequest("echoAdminAllowed");
+    }
+
+    public static String buildUnauthorizedEchoRequestForPath(String path) {
+        if (DEFAULT_DISABLED_METADATA_PATH.equals(path)) {
+            return buildMCPCallRequest("echoAdminAllowed");
+        }
+        return buildUnauthorizedEchoRequest();
+    }
+
+    public static void assertResourceMetadataHeaderPresent(String headerValue, String expectedSuffix) {
+        if (headerValue == null || !headerValue.contains("Bearer") || !headerValue.contains("resource_metadata=\"")
+            || !headerValue.contains(expectedSuffix)) {
+            throw new AssertionError("Expected WWW-Authenticate header to contain Bearer resource_metadata with suffix "
+                                     + expectedSuffix + " but was: " + headerValue);
+        }
+    }
+
+    public static void assertResourceMetadataHeaderAbsent(String headerValue) {
+        if (headerValue == null || !headerValue.contains("Bearer") || headerValue.contains("resource_metadata=\"")) {
+            throw new AssertionError("Expected WWW-Authenticate header without resource_metadata but was: " + headerValue);
+        }
+    }
+
+    private static String buildMCPCallRequest(String toolName) {
         return String.format("""
                         {
                           "jsonrpc": "2.0",
@@ -254,6 +285,6 @@ public class AuthHelper {
                             }
                           }
                         }
-                        """, transfromCurrentMethodName(methodName));
+                        """, toolName);
     }
 }

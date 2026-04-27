@@ -61,6 +61,6 @@ public class NoClassAnnotationTestsStateless extends AbstractNoClassAnnotation {
 
     @AfterClass
     public static void teardown() throws Exception {
-        server.stopServer();
+        server.stopServer("CWIML4537E");
     }
 }

@@ -58,7 +58,7 @@ public class AsyncDenyAllTests extends FATServletClient {
 
     @AfterClass
     public static void teardown() throws Exception {
-        server.stopServer();
+        server.stopServer("CWIML4537E");
     }
 
     @Test

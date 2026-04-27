@@ -14,7 +14,12 @@
 package io.openliberty.checkpoint.fat.security.oidc;
 
 import static io.openliberty.checkpoint.fat.security.common.FATSuite.getTestMethod;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+
+import java.net.HttpURLConnection;
+import java.net.URL;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -171,8 +176,64 @@ public class OidcClientBasicTests extends CommonTest {
         rpServer.stopServer();
     }
 
+    @Test
+    public void testProtectedResourceMetadataChallengeAndDocument() throws Exception {
+        HttpURLConnection unauthorizedConnection = openConnection("/SimpleServlet", "GET");
+        assertEquals(401, unauthorizedConnection.getResponseCode());
+
+        String challengeHeader = unauthorizedConnection.getHeaderField("WWW-Authenticate");
+        assertNotNull("Expected WWW-Authenticate header on unauthorized response", challengeHeader);
+        assertTrue("Expected Bearer challenge but was: " + challengeHeader, challengeHeader.contains("Bearer"));
+        assertTrue("Expected resource_metadata attribute but was: " + challengeHeader,
+                   challengeHeader.contains("resource_metadata=\"https://localhost:" + rpServer.getHttpDefaultSecurePort()
+                                            + "/.well-known/oauth-protected-resource/SimpleServlet\""));
+
+        HttpURLConnection metadataConnection = openConnection("/.well-known/oauth-protected-resource/SimpleServlet", "GET");
+        assertEquals(200, metadataConnection.getResponseCode());
+        assertTrue("Expected application/json content type but was: " + metadataConnection.getContentType(),
+                   metadataConnection.getContentType() != null && metadataConnection.getContentType().contains("application/json"));
+        String metadataJson = readResponseBody(metadataConnection);
+        assertTrue("Expected protected resource metadata document to contain resource value but was: " + metadataJson,
+                   metadataJson.contains("\"resource\":\"https://localhost/SimpleServlet\""));
+        assertTrue("Expected protected resource metadata document to contain authorization server but was: " + metadataJson,
+                   metadataJson.contains("\"authorization_servers\":[\"http://localhost:" + opServer.getHttpDefaultPort()
+                                         + "/oidc/endpoint/OidcConfigSample\"]"));
+
+        HttpURLConnection disabledUnauthorizedConnection = openConnection("/metadata-disabled", "GET");
+        assertEquals(401, disabledUnauthorizedConnection.getResponseCode());
+        String disabledChallengeHeader = disabledUnauthorizedConnection.getHeaderField("WWW-Authenticate");
+        assertNotNull("Expected WWW-Authenticate header on disabled unauthorized response", disabledChallengeHeader);
+        assertTrue("Expected Bearer challenge but was: " + disabledChallengeHeader, disabledChallengeHeader.contains("Bearer"));
+        assertTrue("Did not expect resource_metadata attribute when metadata is disabled but was: " + disabledChallengeHeader,
+                   !disabledChallengeHeader.contains("resource_metadata=\""));
+
+        HttpURLConnection disabledMetadataConnection = openConnection("/.well-known/oauth-protected-resource/metadata-disabled", "GET");
+        assertEquals(404, disabledMetadataConnection.getResponseCode());
+    }
+
+    private HttpURLConnection openConnection(String path, String method) throws Exception {
+        URL url = new URL("https://localhost:" + rpServer.getHttpDefaultSecurePort() + path);
+        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+        connection.setRequestMethod(method);
+        connection.setInstanceFollowRedirects(false);
+        return connection;
+    }
+
+    private String readResponseBody(HttpURLConnection connection) throws Exception {
+        try (java.io.InputStream input = connection.getInputStream();
+             java.io.ByteArrayOutputStream output = new java.io.ByteArrayOutputStream()) {
+            byte[] buffer = new byte[1024];
+            int bytesRead;
+            while ((bytesRead = input.read(buffer)) != -1) {
+                output.write(buffer, 0, bytesRead);
+            }
+            return new String(output.toByteArray(), java.nio.charset.StandardCharsets.UTF_8);
+        }
+    }
+
     static enum TestMethod {
         testOidcClientTestGetMainPath,
+        testProtectedResourceMetadataChallengeAndDocument,
         unknown
     }
 }

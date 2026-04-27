@@ -25,6 +25,7 @@ tested.features: \
     appSecurity-6.0,\
     cdi-4.1,\
     concurrent-3.1,\
+    pages-3.1,\
     servlet-6.1
 
 -buildpath: \
@@ -43,6 +44,7 @@ tested.features: \
 	io.openliberty.jakarta.annotation.2.1,\
 	io.openliberty.jakarta.concurrency.3.0,\
 	io.openliberty.org.testcontainers;version=latest,\
+	io.openliberty.jcache.internal_fat.hazelcast;version=latest,\
 	com.ibm.ws.org.apache.httpcomponents;version=latest,\
 	com.ibm.ws.security.fat.common;version=latest,\
 	com.ibm.ws.security.oauth.oidc_fat.common;version=latest,\

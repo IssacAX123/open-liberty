@@ -27,10 +27,12 @@ sourceSets {
 
 dependencies {
   requiredLibs 'org.json:json:20080701',
-               'org.skyscreamer:jsonassert:2.0-rc1'
+               'org.skyscreamer:jsonassert:2.0-rc1',
+               'org.apache.httpcomponents:httpclient:4.5.4',
+               'org.apache.httpcomponents:httpcore:4.4.9'
   noParamNamesCompileOnly project(':io.openliberty.mcp'),
                               project(path: ':io.openliberty.jakarta', configuration: 'cdi40')
-  implementation sourceSets.noParamNames.output  
+  implementation sourceSets.noParamNames.output
 }
 
 addRequiredLibraries.dependsOn copyTestContainers

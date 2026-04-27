@@ -10,7 +10,7 @@
 package io.openliberty.mcp.internal.fat.security;
 
 import static com.ibm.websphere.simplicity.ShrinkHelper.DeployOptions.SERVER_ONLY;
-import static io.openliberty.jcache.internal.fat.docker.KeycloakContainer.TEST_REALM;
+import static io.openliberty.mcp.internal.fat.security.oidc.KeycloakContainer.TEST_REALM;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
@@ -32,7 +32,7 @@ import com.ibm.websphere.simplicity.config.ServerConfiguration;
 import componenttest.annotation.Server;
 import componenttest.custom.junit.runner.FATRunner;
 import componenttest.topology.impl.LibertyServer;
-import io.openliberty.jcache.internal.fat.docker.KeycloakContainer;
+import io.openliberty.mcp.internal.fat.security.oidc.KeycloakContainer;
 import io.openliberty.mcp.internal.fat.tool.securityApps.AdminsRoleTools;
 import io.openliberty.mcp.internal.fat.utils.McpClient;
 import io.openliberty.mcp.internal.fat.utils.McpClient.RawResponse;
@@ -97,7 +97,7 @@ public class OAuthProtectedResourceMetadataTest {
     public static void teardown() throws Exception {
         try {
             if (server != null && server.isStarted()) {
-                server.stopServer();
+                server.stopServer("CWIML4537E");
             }
         } finally {
             try {

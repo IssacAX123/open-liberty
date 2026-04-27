@@ -35,6 +35,8 @@ Private-Package: \
     com.ibm.wsspi.org.osgi.service.component.annotations;version=latest,\
     com.ibm.ws.kernel.service;version=latest,\
     com.ibm.ws.webcontainer;version=latest,\
+    com.ibm.ws.webcontainer.security;version=latest,\
+    com.ibm.ws.security.jwt;version=latest,\
     com.ibm.ws.security.openidconnect.clients.common;version=latest,\
     com.ibm.ws.security.authentication.filter;version=latest,\
     io.openliberty.security.oidcclientcore.internal;version=latest,\
